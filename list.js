@@ -7,17 +7,11 @@ import "./loading.css"
 import "./auto-table.css"
 import "./list.html"
 import "./loading.html"
+import "./filter"
 import {deepObjectExtend} from "./auto-table";
 const defaultLimit = 25
 
-const fieldUpdate = function (id, property, value) {
-    fields = _.map(fields, (field)=> {
-        if (field.id == $input.val()) {
-            field.invisible = invisible
-        }
-        return field
-    })
-}
+
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
     this.showingMore = new ReactiveVar(false)
@@ -25,11 +19,19 @@ Template.atTable.onCreated(function () {
     if (!this.id) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be an id parameter')
     autoTable = AutoTable.getInstance(this.id)
     this.settings = deepObjectExtend(this.data.settings, autoTable.settings)
-    if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error(400, 'Missing configuration', 'In Sort to use showing option you need to install tmeasday:publish-counts package')
     this.collection = this.data.collection || autoTable.collection
-    this.fields = new PersistentReactiveVar('fields' + this.sessionName, this.data.fields || autoTable.fields)
-    console.log('this.fields', this.fields.get())
-    if (!this.id) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
+    if (!this.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
+    const newFields = autoTable.fields
+    this.fields = new PersistentReactiveVar('fields' + this.sessionName, this.data.fields || newFields)
+    const storedFields = this.fields.get()
+    const whiteList = ['key', 'label']
+    if (!_.isEqual(_.pick(storedFields, whiteList), _.pick(newFields, whiteList))) {
+        //if are different is because the user change the configuration
+        //then the store value dosen't work any more
+        console.log('no entiendo ************************************************')
+        this.fields.set(newFields)
+
+    }
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
     this.sessionName = `${this.id}${userId}`
     this.limit = new ReactiveVar(this.data.limit || defaultLimit)
@@ -51,7 +53,7 @@ Template.atTable.onRendered(function () {
                 first = false
                 let fields = this.fields.get()
                 Meteor.setTimeout(()=> {
-                    const instance=this
+                    const instance = this
                     this.$('.sortable').sortable({
                         cursor: 'ew-resize',
                         axis: 'x',
@@ -63,8 +65,10 @@ Template.atTable.onRendered(function () {
                         delay: 100,
                         placeholder: "splaceholder",
                         update: function (event, ui) {
-                            const ids=$(this).sortable( "toArray" )
-                            fields=_.sortBy(fields, function(field){ return ids.indexOf(field.id) });
+                            const keys = $(this).sortable("toArray")
+                            fields = _.sortBy(fields, function (field) {
+                                return keys.indexOf(field.key)
+                            });
                             instance.fields.set(fields)
                             event.preventDefault()
                         },
@@ -82,6 +86,7 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
+    id: ()=>Template.instance().id,
     atts: (field)=> {
         const instance = Template.instance();
         let fields = instance.fields.get()
@@ -90,19 +95,23 @@ Template.atTable.helpers({
         const atts = {}
         console.log(total, invisible)
         _.forEach(fields, (val)=> {
-            if (val.id == field.id) {
+            if (val.key == field.key) {
                 if (total - invisible == 1 && !field.invisible) atts.disabled = true
                 if (!field.invisible) atts.checked = true
             }
-            atts.value = field.id
+            atts.value = field.key
         })
         return atts
         //instance.fields.set(fields)
     },
     showingMore: ()=>Template.instance().showingMore.get(),
     settings: ()=>Template.instance().settings,
-    valueOf: (row, field)=> row[field.id],
-    fields: ()=>  Template.instance().fields.get(),
+    valueOf: function (path, obj) {
+        return path.split('.').reduce(function (prev, curr) {
+            return prev ? prev[curr] : undefined
+        }, obj || self)
+    },
+    fields: ()=> Template.instance().fields.get(),
     rows: ()=> {
         const instance = Template.instance();
         return instance.collection.find(instance.query.get(), {
@@ -159,12 +168,12 @@ Template.atTable.events({
     'change input[name="columns"]'(e, instance){
         let fields = instance.fields.get()
         const $input = $(e.currentTarget)
-        const id = $input.val()
-        //const number = $column.index('table thead th[id]')
+        const key = $input.val()
+        //const number = $column.index('table thead th[key]')
         const invisible = !$input.prop('checked')
         console.log(fields)
         fields = _.map(fields, (field)=> {
-            if (field.id == $input.val()) {
+            if (field.key == $input.val()) {
                 field.invisible = invisible
             }
             return field
@@ -177,7 +186,7 @@ Template.atTable.events({
         instance.limit.set(instance.limit.get() + (this.limit || defaultLimit))
     },
     'click .sortable'(e, instance) {
-        const $target=$(e.target)
+        const $target = $(e.target)
         console.log($target)
         if ($target.get(0).localName == "a") {
             e.preventDefault()

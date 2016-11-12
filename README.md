@@ -19,8 +19,15 @@ Allow to create a table of records in minutes
     metoeor add cesarve:auto-table
 ```
 ```sh
+    metoeor add tws:bootstrap #or your preferer package for preformated table
+```
+```sh
     metoeor add tmeasday:publish-counts #if you will use showing option see bellow (no recommended for large date sets)
 ```
+```sh
+    metoeor add aldeed:autoform #if you will use filters option
+```
+
 
 
 ## Usage
@@ -36,7 +43,8 @@ const autoTable= AutoTable(id,collection,fields,settings)
 |---|---|---|---|
 |  id |  required | String  |  Unique id in all app for this table |
 | collection  | required  | Mongo Collection  |  where the data comes from   |  
-|  fields |  required | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
+|  fields |  required if not schema present | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
+|  schema |  required if use filter option | SimpleSchema  |  see [fields Object format ](http://) |  
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
 
 #### <a name="fieldsObject"></a>fields Object format
@@ -55,6 +63,7 @@ const autoTable= AutoTable(id,collection,fields,settings)
             columnsSort: true, // {Boolean} allow to order the columns
             columnsDisplay: true, // {Boolean} allow to show/hide columns
             showing: false, {Boolean} //show legend (Showing 15 records from 143) //need to install 'tmeasday:publish-counts' package
+            filter: false, {Boolean}  //show filter for each field
         },
         msg: { // Messages (ypu can custumize to any languaje )
             columns: 'Columns', //{String} text for Button show/hide columns 
@@ -71,7 +80,6 @@ const autoTable= AutoTable(id,collection,fields,settings)
             tableWrapper: 'table-responsive',
             table: 'table table-bordered table-condensed table-striped',
             link: '',
-            drag: 'glyphicon glyphicon-resize-horizontal',
             transitionIn: 'fadeInLeftBig',
             transitionOut: 'fadeOutRightBig',
             showMore: 'btn btn-block btn-default',
@@ -86,14 +94,16 @@ const autoTable= AutoTable(id,collection,fields,settings)
 ## Usage
 
 ```Blaze
-  {{>atTable id='id1' settings=settings}}
+  {{>atTable id='id1' query=query settings=settings}}
 ```
 #### Argumens
 
 |  name | req/opt  | type  | description  |  
 |---|---|---|---|
 |  id | required  | String  | The same used to configure the table (see above)  | 
+| query | optional | Object | Mongo selector to filter the docs 
 |  settings | optional  | Object  | override settings values (see above)  | 
+
 ## Know Issues 
 
 Depending on unknown package webtempest:animate
