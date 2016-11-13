@@ -1,80 +1,85 @@
 <template name="atTable">
     <div class="atTable">
         {{settings.options.loadingTemplate}}
-        {{#if rows.count}}
-            {{>atShowing settings=settings total=total showing=showing}}
-            {{#unless Template.subscriptionsReady }}
-                <div class="center-loading">
-                    yy{{> Template.dynamic template=settings.options.loadingTemplate}}yy
-                </div>
-            {{/unless}}
-            <div class="{{settings.Klass.tableWrapper}}">
-                {{#if settings.options.columnsDisplay}}
-                    <div class="btn-group at-checkbox-group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
-                            {{settings.msg.columns}} <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            {{#each field in fields}}
-                                <li><p><label> <input name="columns" type="checkbox" {{atts field}}> {{field.label}}
-                                </label></p></li>
-                            {{/each}}
-                        </ul>
-                    </div>
+
+        {{>atShowing settings=settings total=total showing=showing}}
+        {{#unless Template.subscriptionsReady }}
+            <div class="center-loading">
+                {{> Template.dynamic template=settings.options.loadingTemplate}}
+            </div>
+        {{/unless}}
+        {{#if settings.options.columnsDisplay}}
+
+            <div class="{{settings.Klass.buttonColumnWrapper}}">
+                <button type="button" class="{{settings.Klass.buttonColumn}} " data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                    {{settings.msg.columns}} <span class=" {{settings.Klass.hiddenFilter}}">{{#if hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
+                </button>
+                <ul class="{{settings.Klass.buttonColumnList}}">
+                    {{#each field in fields}}
+                        <li {{settings.Klass.buttonColumnItem}} ><p><label {{settings.Klass.buttonColumnLabel}} > <input
+                                name="columns" type="checkbox" {{atts field}}> {{field.label}}
+                        </label></p></li>
+                    {{/each}}
+                </ul>
+            </div>
+        {{/if}}
+        <div class="clearfix"></div>
+        <div class="{{settings.Klass.tableWrapper}}" style="overflow: visible">
+            <table class="{{settings.Klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
+                <thead>
+                <tr class="sortable">
+                    {{#each field in fields}}
+                        <th id="{{field.key}}" style="{{#if field.invisible}}display: none{{/if}}">
+                            <a href="#"
+                               class="{{settings.Klass.link}}"
+                               data-sort="{{field.key}}"
+                               data-direction="1">{{field.label}}</a>
+                            {{{sort field.key}}}
+                        </th>
+                    {{/each}}
+                </tr>
+                {{#if settings.options.filters}}
+
+                    {{>atFilter id=id fields=fields}}
+
                 {{/if}}
-                <table class="{{settings.Klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
-                    <thead>
-                    <tr class="sortable">
-                        {{#each field in fields}}
-                            <th id="{{field.key}}" style="{{#if field.invisible}}display: none{{/if}}">
-                                <a href="#"
-                                   class="{{settings.Klass.link}}"
-                                   data-sort="{{field.key}}"
-                                   data-direction="1">{{field.label}}</a>
-                                {{{sort field.key}}}
-                            </th>
-                        {{/each}}
-                    </tr>
-                    {{#if settings.options.filters}}
-                        <tr class="filter">
+                </thead>
+                <tbody>
+                {{#transition in=settings.Klass.transitionIn out=settings.Klass.transitionOut}}
+                    {{#each row in rows}}
+                        <tr>
                             {{#each field in fields}}
-                                <th style="{{#if field.invisible}}display: none{{/if}}">
-                                    {{>atFilter id=id field=field}}
-                                </th>
+                                <td class="goto" style="{{#if field.invisible}}display: none{{/if}}">{{valueOf  field.key row}} </td>
                             {{/each}}
                         </tr>
-                    {{/if}}
-                    </thead>
-                    <tbody>
-                    {{#transition in=settings.Klass.transitionIn out=settings.Klass.transitionOut}}
-                        {{#each row in rows}}
-                            <tr>
-                                {{#each field in fields}}
-                                    <td class="goto" style="{{#if field.invisible}}display: none{{/if}}">{{valueOf
-                                            field.key row}} </td>
-                                {{/each}}
-                            </tr>
-                        {{/each}}
-                    {{/transition}}
-                    </tbody>
-                </table>
-            </div>
-            {{>atShowing settings=settings total=total showing=showing}}
-            <br>
-            {{#if showingMore}}
-                {{> Template.dynamic template=settings.options.loadingTemplate}}
-            {{else}}
+                    {{/each}}
+                {{/transition}}
+                </tbody>
+            </table>
+        </div>
+
+        {{#if showingMore}}
+            {{> Template.dynamic template=settings.options.loadingTemplate}}
+        {{else}}
+            {{#if Template.subscriptionsReady }}
                 {{#if showMore}}
+
                     <button class="{{settings.Klass.showMore}} showMore">{{{settings.msg.showMore}}}</button>
                 {{/if}}
             {{/if}}
-        {{else}}
+        {{/if}}
+        <br>
+        {{#unless rows.count}}
             {{#if Template.subscriptionsReady }}
                 <div class="{{settings.Klass.noRecordsWrapper}}">
                     <div class="{{settings.Klass.noRecordsWrapper}}">
-                        <br><br>
-                        {{{settings.msg.noRecords}}}
+                        {{#if filtered}}
+                            {{{settings.msg.noRecordsCriteria}}}
+                        {{else}}
+                            {{{settings.msg.noRecords}}}
+                        {{/if}}
+
                     </div>
                 </div>
             {{else}}
@@ -84,7 +89,9 @@
                     </div>
                 {{/unless}}
             {{/if}}
-        {{/if}}
+        {{else}}
+            {{>atShowing settings=settings total=total showing=showing}}
+        {{/unless}}
     </div>
 </template>
 

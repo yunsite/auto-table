@@ -1,41 +1,72 @@
 import "./filter.html"
 import {AutoTable} from "./auto-table"
+import {PersistentReactiveVar} from "meteor/cesarve:persistent-reactive-var"
 import {AutoForm} from "meteor/aldeed:autoform"
-
+/*
+ const key=Template.instance().data.field.key
+ let filters=Template.instance().filters.get()
+ console.log('filterValue',key,filters.key)
+ return filters[key]
+ */
 Template.atFilter.helpers({
-    id(){
-        return this.id + '_' + this.field.key
+    fields () {
+        return this.fields
     },
     schema(){
-        console.log('this', this.field.key)
-        const autoTable = AutoTable.getInstance(this.id)
-        const schema = autoTable.schema
-        const field = {}
-        const fieldKey = this.field.key.replace(/\./g, '_')
-        field[fieldKey] = (schema.schema(this.field.key))
-        console.log(field[fieldKey])
-        field[fieldKey].optional = true
-        return new SimpleSchema(field)
+        return AutoTable.getInstance(this.id).schema
+    },
+    multipleOperators(){
+        return Array.isArray(this.operators) && this.operators.length > 1
+    },
+    selected(){
+        return _.findWhere(this.operators, {operator: this.operator})
     }
 });
 
 
-Template.atFilter.events({});
+Template.atFilter.events({
+    'click .operator a'(e, instance){
+        const $form=$(e.currentTarget).parents('.form-group')
+        const $input = $form.find('input[type="hidden"]')
+        const $btn = $form.find('button')
+        $input.val(this.operator)
+        $form.submit()
+    }
+});
 
 Template.atFilter.onCreated(function () {
-    console.log('atFilter',Template.parentData())
-    console.log(Blaze.getView($('atTable').get(0)))
-    console.log('atFilter',Template.atTable)
+    this.filters = new PersistentReactiveVar('filters' + this.data.id, {})
+    const parentData = Template.parentData()
+    const self = this
+    console.log('Template.atFilter.onCreated', parentData, this)
     AutoForm.addHooks(
-        this.data.id + '_' + this.data.field.key,
+        this.data.id,
         {
-            onSubmit:  (doc, updateDoc, currentDoc)=> {
-                console.log(doc, updateDoc, currentDoc)
-                let query=this.query.get()
-                for (let key in doc){
+            onSubmit: function (doc, modifier, currentDoc) {
+                console.log('onSubmit', $(this.event.currentTarget))
+                const formData = new FormData($(this.event.currentTarget).get(0))
+                let selector = {},  filters = {}
+                let fields = parentData.fields.get()
+                data={}
+                for (field of fields) {
+                    const val = formData.get(field.key)
+                    const operator = formData.get(field.key + '_operator')
+                    field.operator=operator
+                    if (val !== '') {
+                        selector[operator] = val
+                        if (operator == '$regex')  selector['$options'] = 'gi'
+                        filters[field.key] = _.clone(selector)
+                        field.filter = val
+
+                    } else {
+                        delete filters[field.key]
+                        delete field.filter
+                    }
 
                 }
-                this.query.set(doc)
+
+                parentData.filters.set(filters)
+                parentData.fields.set(fields)
                 return false
             }
         }

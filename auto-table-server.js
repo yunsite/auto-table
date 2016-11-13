@@ -17,6 +17,7 @@ Meteor.publish('atPubSub', function (id, limit, query, sort) {
         let Counts = Package['tmeasday:publish-counts']
         if (!Counts) throw new Error
         Counts=Counts.Counts
+        console.log(query, {limit, sort})
         Counts.publish(this, 'atCounter', autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
     return autoTable.collection.find(query, {fields, sort, limit})

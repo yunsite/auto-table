@@ -50,9 +50,57 @@ const autoTable= AutoTable(id,collection,fields,settings)
 #### <a name="fieldsObject"></a>fields Object format
 ```
  {
-    label: {String} //Name showed in header of column
-    id: {String} //Key og mongo field, (eg 'firstNamep' or 'emails.0.address')
-    invisible: {Boolean} //Initially hidden, have to be option.columnsDisplay to true for work 
+    label: 'email' //Optional {String} Name showed in header of column, if Filter option is on and this parameter is missing the label will be taken from Schema
+    id: 'emails.address.0' // Required {String} Key og mongo field, (eg 'firstNamep' or 'emails.0.address')
+    invisible: false, // Optional {Boolean} Initially hidden, have to be option.columnsDisplay to true for work 
+    operator: '$regex', // Optional {String} required if option filter is enable
+    operators:  [{ // Optional Array works for option filter 
+                   // the value of fields.operator (above) has to be present in fields.operators.operator (below) and it will be preselected
+                   label: 'Like', // Required {String} Label to show in options
+                    shortLabel: '≈', // Required {String} label to show as selected
+                   operator: '$regex', // Required {String} Mongo operator. eg this option will bel preselectes because is the same valu of operator (above)
+               {
+                   label: 'Equal',
+                   shortLabel: '=',
+                   operator: '$eq',
+               },
+            
+               {
+                   label: 'Different',
+                   shortLabel: '≠',
+                   operator: '$ne',
+               },
+               {
+                   label: 'More than',
+                   shortLabel: '>',
+                   operator: '$gt',
+               },
+               {
+                   label: 'Less than',
+                   shortLabel: '<',
+                   operator: '$lt',
+               },
+               {
+                   label: 'More or equal than',
+                   shortLabel: '≥',
+                   operator: '$gte',
+               },
+               {
+                   label: 'Less or equal than',
+                   shortLabel: '≤',
+                   operator: '$lte',
+               },
+               {
+                   label: 'In',
+                   shortLabel: '[]',
+                   operator: '$in',
+               },
+               {
+                   label: 'Not in',
+                   shortLabel: '][',
+                   operator: '$nin',
+               },
+           ]
 }
 ```
 #### <a name="settingObject"></a>setting object format
@@ -74,7 +122,8 @@ const autoTable= AutoTable(id,collection,fields,settings)
                 asc: '<i class="glyphicon glyphicon-triangle-top"></i>', //{String} sort asc icon/text (accept html)
                 desc: '<i class="glyphicon glyphicon-triangle-bottom"></i>'//{String} sort desc icon/text (accept html)
             },
-            noRecords: 'There is not families with this criteria' //{String} No records message
+            noRecords: 'There is not records ' //{String} No records message
+            noRecordsCriteria: 'There is not families with this criteria' //{String} No records message when query is not empty
         },
         Klass: { //individual class, works with bootstrap 3 out of the box 
             tableWrapper: 'table-responsive',

@@ -11,47 +11,56 @@ import "./filter"
 import {deepObjectExtend} from "./auto-table";
 const defaultLimit = 25
 
-
+const areDifferents = function (coll1, coll2) {
+    if (coll1.length != coll2.length)
+        return true
+    for (let i = 0; i < coll1.length; i++) {
+        if (!_.isEqual(coll1[i], coll2[i])) {
+            return true
+        }
+    }
+    return false
+}
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
-    this.showingMore = new ReactiveVar(false)
-    this.id = this.data.id
-    if (!this.id) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be an id parameter')
-    autoTable = AutoTable.getInstance(this.id)
-    this.settings = deepObjectExtend(this.data.settings, autoTable.settings)
-    this.collection = this.data.collection || autoTable.collection
-    if (!this.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
-    const newFields = autoTable.fields
-    this.fields = new PersistentReactiveVar('fields' + this.sessionName, this.data.fields || newFields)
-    const storedFields = this.fields.get()
-    const whiteList = ['key', 'label']
-    if (!_.isEqual(_.pick(storedFields, whiteList), _.pick(newFields, whiteList))) {
-        //if are different is because the user change the configuration
-        //then the store value dosen't work any more
-        console.log('no entiendo ************************************************')
-        this.fields.set(newFields)
-
+    this.data.showingMore = new ReactiveVar(false)
+    if (!this.data.id) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be an id parameter')
+    autoTable = AutoTable.getInstance(this.data.id)
+    this.data.settings = deepObjectExtend(this.data.settings, autoTable.settings)
+    this.data.filters = new PersistentReactiveVar('filters' + this.sessionName, {})
+    this.data.collection = this.data.collection || autoTable.collection
+    if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
+    this.data.fields = new PersistentReactiveVar('fields' + this.sessionName, this.data.fields || autoTable.fields)
+    let storeFields = _.map(this.data.fields.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
+    let newFields = _.map(autoTable.fields, (val)=>_.pick(val, 'key', 'label', 'operators'))
+    newFields = _.sortBy(newFields, 'key')
+    storeFields = _.sortBy(storeFields, 'key')
+    if (areDifferents(storeFields, newFields)) {
+        this.data.fields.set(autoTable.fields)
     }
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
-    this.sessionName = `${this.id}${userId}`
-    this.limit = new ReactiveVar(this.data.limit || defaultLimit)
-    this.query = new PersistentReactiveVar('query' + this.sessionName);
-    this.sort = new PersistentReactiveVar('sort' + this.sessionName);
-    this.query.setDefault(this.data.query || {})
-    this.sort.setDefault(this.data.sort || {})
+    this.data.sessionName = `${this.id}${userId}`
+    this.limit = parseInt(this.data.limit || defaultLimit)
+    console.log('this.limit', this.limit)
+    this.data.limit = new ReactiveVar(this.limit)
+    console.log('this.limit', this.limit)
+    this.data.query = new PersistentReactiveVar('query' + this.data.sessionName, this.data.query || {});
+    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, this.data.sort || {});
     this.autorun(()=> {
-        this.subscribe('atPubSub', this.id, this.limit.get(), this.query.get(), this.sort.get(), {
-            onReady: ()=>this.showingMore.set(false)
+        const query = {$and: [this.data.query.get(), this.data.filters.get()]}
+        console.log('query', query)
+        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), query, this.data.sort.get(), {
+            onReady: ()=>this.data.showingMore.set(false)
         })
     })
 });
 Template.atTable.onRendered(function () {
     let first = true
-    if (this.settings.options.columnsSort) {
+    if (this.data.settings.options.columnsSort) {
         this.autorun(()=> {
             if (this.subscriptionsReady() && first) {
                 first = false
-                let fields = this.fields.get()
+                let fields = this.data.fields.get()
                 Meteor.setTimeout(()=> {
                     const instance = this
                     this.$('.sortable').sortable({
@@ -69,7 +78,7 @@ Template.atTable.onRendered(function () {
                             fields = _.sortBy(fields, function (field) {
                                 return keys.indexOf(field.key)
                             });
-                            instance.fields.set(fields)
+                            instance.data.fields.set(fields)
                             event.preventDefault()
                         },
                     }).disableSelection()
@@ -86,10 +95,15 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
-    id: ()=>Template.instance().id,
+    hiddenFilter(){
+        return _.reduce(Template.instance().data.fields.get(), function (memo, field) {
+                return memo + Number(!!field.invisible && !!field.filter)
+            }, 0) > 0
+    },
+    filtered: ()=>!!_.isEmpty(Template.instance().data.filters.get()),
     atts: (field)=> {
         const instance = Template.instance();
-        let fields = instance.fields.get()
+        let fields = instance.data.fields.get()
         const total = fields.length
         const invisible = _.where(fields, {invisible: true}).length;
         const atts = {}
@@ -104,28 +118,28 @@ Template.atTable.helpers({
         return atts
         //instance.fields.set(fields)
     },
-    showingMore: ()=>Template.instance().showingMore.get(),
-    settings: ()=>Template.instance().settings,
+    showingMore: ()=>Template.instance().data.showingMore.get(),
+    settings: ()=>Template.instance().data.settings,
     valueOf: function (path, obj) {
         return path.split('.').reduce(function (prev, curr) {
             return prev ? prev[curr] : undefined
         }, obj || self)
     },
-    fields: ()=> Template.instance().fields.get(),
+    fields: ()=> Template.instance().data.fields.get(),
     rows: ()=> {
         const instance = Template.instance();
-        return instance.collection.find(instance.query.get(), {
-            sort: instance.sort.get(),
-            limit: instance.limit.get(),
+        return instance.data.collection.find(instance.data.query.get(), {
+            sort: instance.data.sort.get(),
+            limit: instance.data.limit.get(),
         })
     },
     showing: ()=> {
         const total = Package['tmeasday:publish-counts'].Counts.get('atCounter')
-        const limit = Template.instance().limit.get()
+        const limit = Template.instance().data.limit.get()
         return limit < total ? limit : total
     },
     total: function () {
-        if (Template.instance().settings.options.showing) {
+        if (Template.instance().data.settings.options.showing) {
             return Package['tmeasday:publish-counts'].Counts.get('atCounter')
         }
 
@@ -133,31 +147,31 @@ Template.atTable.helpers({
     ,
     showMore: function () {
         const instance = Template.instance();
-        if (instance.settings.options.showing) {
-            return (instance.collection.find(instance.query.get(), {
-                sort: instance.sort.get(),
-                limit: instance.limit.get(),
-                transform: instance.transform
+        if (instance.data.settings.options.showing) {
+            return (instance.data.collection.find(instance.data.query.get(), {
+                sort: instance.data.sort.get(),
+                limit: instance.data.limit.get(),
+                transform: instance.data.transform
             }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter'))
         } else {
-            return (instance.collection.find(instance.query.get(), {
-                sort: instance.sort.get(),
-                limit: instance.limit.get(),
-                transform: instance.transform
-            }).count() === instance.limit.get())
+            return (instance.data.collection.find(instance.data.query.get(), {
+                sort: instance.data.sort.get(),
+                limit: instance.data.limit.get(),
+                transform: instance.data.transform
+            }).count() === instance.data.limit.get())
         }
     }
     ,
     sort(sort)
     {
         const instance = Template.instance()
-        const sortObj = instance.sort.get()
+        const sortObj = instance.data.sort.get()
         const sortKey = Object.keys(sortObj)[0];
         if (sort == sortKey) {
             if (sortObj[sortKey] > 0) {
-                return instance.settings.msg.sort.asc
+                return instance.data.settings.msg.sort.asc
             } else {
-                return instance.settings.msg.sort.desc
+                return instance.data.settings.msg.sort.desc
             }
         }
     }
@@ -166,7 +180,7 @@ Template.atTable.helpers({
 
 Template.atTable.events({
     'change input[name="columns"]'(e, instance){
-        let fields = instance.fields.get()
+        let fields = instance.data.fields.get()
         const $input = $(e.currentTarget)
         const key = $input.val()
         //const number = $column.index('table thead th[key]')
@@ -178,36 +192,38 @@ Template.atTable.events({
             }
             return field
         })
-        instance.fields.set(fields)
-        console.log(fields, instance.fields.get())
+        instance.data.fields.set(fields)
+        console.log(fields, instance.data.fields.get())
     },
     'click .showMore'(e, instance){
-        instance.showingMore.set(true)
-        instance.limit.set(instance.limit.get() + (this.limit || defaultLimit))
+        instance.data.showingMore.set(true)
+
+        console.log('instance.data.limit.get() + (this.limit || defaultLimit)', instance.data.limit.get(), (instance.limit || defaultLimit))
+        instance.data.limit.set(instance.data.limit.get() + (instance.limit || defaultLimit))
     },
     'click .sortable'(e, instance) {
         const $target = $(e.target)
         console.log($target)
         if ($target.get(0).localName == "a") {
             e.preventDefault()
-            const oldSortKey = Object.keys(instance.sort.get())[0];
+            const oldSortKey = Object.keys(instance.data.sort.get())[0];
             const newSortKey = $target.data('sort');
             let newSort = {};
             if (oldSortKey == newSortKey) {
-                newSort[newSortKey] = instance.sort.get()[oldSortKey] * -1;
+                newSort[newSortKey] = instance.data.sort.get()[oldSortKey] * -1;
             } else {
                 newSort[newSortKey] = $target.data('direction');
             }
             console.log('click sort', newSort)
-            instance.sort.set(newSort)
+            instance.data.sort.set(newSort)
         }
 
     },
     'click .zoom'(e, instance){
         if (Package['kadira:flow-router']) {
-            Package['kadira:flow-router'].FlowRouter.go(instance.settings.link.routeDefinition, instance.settings.link.routeData)
+            Package['kadira:flow-router'].FlowRouter.go(instance.data.settings.link.routeDefinition, instance.data.settings.link.routeData)
         } else {
-            location.href = instance.settings.link.path
+            location.href = instance.data.settings.link.path
         }
 
     },
