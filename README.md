@@ -8,9 +8,9 @@ Allow to create a table of records in minutes
 * Show/Hide Columns
 * Pagination (show more button)
 * Legend (eg. showing 20 from 153 rows)
-* Browser/user persistent 
+* Browser/user persistent state
 * Auto publish
-* Search for indiviual fields (using auto form)
+* Query for individual fields (using auto form)
 
 
 ## installation
@@ -35,7 +35,7 @@ Allow to create a table of records in minutes
 ### Configuration 
 ```javascript
 //have to be share code
-const autoTable= AutoTable(id,collection,fields,settings)
+const autoTable= AutoTable(id,collection,fields,query,settings,publish)
 ```
 
 #### AutoTable Arguments
@@ -44,8 +44,12 @@ const autoTable= AutoTable(id,collection,fields,settings)
 |  id |  required | String  |  Unique id in all app for this table |
 | collection  | required  | Mongo Collection  |  where the data comes from   |  
 |  fields |  required if not schema present | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
-|  schema |  required if use filter option | SimpleSchema  |  see [fields Object format ](http://) |  
+|  schema |  required if use filter option (use null if not)| SimpleSchema  |  see [fields Object format ](http://) |  
+|  query |  required | Object  | Mongo selector for filter the publication for publish all docs use {} |  
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
+|  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
+
+
 
 #### <a name="fieldsObject"></a>fields Object format
 ```
@@ -54,53 +58,55 @@ const autoTable= AutoTable(id,collection,fields,settings)
     id: 'emails.address.0' // Required {String} Key og mongo field, (eg 'firstNamep' or 'emails.0.address')
     invisible: false, // Optional {Boolean} Initially hidden, have to be option.columnsDisplay to true for work 
     operator: '$regex', // Optional {String} required if option filter is enable
-    operators:  [{ // Optional Array works for option filter 
+    operators:  [  // Optional Array works for option filter
                    // the value of fields.operator (above) has to be present in fields.operators.operator (below) and it will be preselected
-                   label: 'Like', // Required {String} Label to show in options
-                    shortLabel: '≈', // Required {String} label to show as selected
-                   operator: '$regex', // Required {String} Mongo operator. eg this option will bel preselectes because is the same valu of operator (above)
-               {
-                   label: 'Equal',
-                   shortLabel: '=',
-                   operator: '$eq',
-               },
-            
-               {
-                   label: 'Different',
-                   shortLabel: '≠',
-                   operator: '$ne',
-               },
-               {
-                   label: 'More than',
-                   shortLabel: '>',
-                   operator: '$gt',
-               },
-               {
-                   label: 'Less than',
-                   shortLabel: '<',
-                   operator: '$lt',
-               },
-               {
-                   label: 'More or equal than',
-                   shortLabel: '≥',
-                   operator: '$gte',
-               },
-               {
-                   label: 'Less or equal than',
-                   shortLabel: '≤',
-                   operator: '$lte',
-               },
-               {
-                   label: 'In',
-                   shortLabel: '[]',
-                   operator: '$in',
-               },
-               {
-                   label: 'Not in',
-                   shortLabel: '][',
-                   operator: '$nin',
-               },
-           ]
+                   {  
+                       label: 'Like', // Required {String} Label to show in options
+                       shortLabel: '≈', // Required {String} label to show as selected
+                       operator: '$regex', // Required {String} Mongo operator. eg this option will bel preselectes because is the same valu of operator (above)
+                   },
+                   {
+                       label: 'Equal',
+                       shortLabel: '=',
+                       operator: '$eq',
+                   },
+                
+                   {
+                       label: 'Different',
+                       shortLabel: '≠',
+                       operator: '$ne',
+                   },
+                   {
+                       label: 'More than',
+                       shortLabel: '>',
+                       operator: '$gt',
+                   },
+                   {
+                       label: 'Less than',
+                       shortLabel: '<',
+                       operator: '$lt',
+                   },
+                   {
+                       label: 'More or equal than',
+                       shortLabel: '≥',
+                       operator: '$gte',
+                   },
+                   {
+                       label: 'Less or equal than',
+                       shortLabel: '≤',
+                       operator: '$lte',
+                   },
+                   {
+                       label: 'In',
+                       shortLabel: '[]',
+                       operator: '$in',
+                   },
+                   {
+                       label: 'Not in',
+                       shortLabel: '][',
+                       operator: '$nin',
+                   },
+               ]
 }
 ```
 #### <a name="settingObject"></a>setting object format
@@ -150,7 +156,7 @@ const autoTable= AutoTable(id,collection,fields,settings)
 |  name | req/opt  | type  | description  |  
 |---|---|---|---|
 |  id | required  | String  | The same used to configure the table (see above)  | 
-| query | optional | Object | Mongo selector to filter the docs 
+| customFilter | optional | Object | Mongo selector to hook into filter the docs (no cares about publication for this use query in AutoTable Arguments)
 |  settings | optional  | Object  | override settings values (see above)  | 
 
 ## Know Issues 

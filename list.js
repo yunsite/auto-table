@@ -44,12 +44,11 @@ Template.atTable.onCreated(function () {
     console.log('this.limit', this.limit)
     this.data.limit = new ReactiveVar(this.limit)
     console.log('this.limit', this.limit)
-    this.data.query = new PersistentReactiveVar('query' + this.data.sessionName, this.data.query || {});
+    this.query = autoTable.query
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, this.data.sort || {});
     this.autorun(()=> {
-        const query = {$and: [this.data.query.get(), this.data.filters.get()]}
-        console.log('query', query)
-        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), query, this.data.sort.get(), {
+        console.log('autorun query ', this.data.filters.get())
+        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), this.data.filters.get(), this.data.sort.get(), {
             onReady: ()=>this.data.showingMore.set(false)
         })
     })
@@ -107,7 +106,6 @@ Template.atTable.helpers({
         const total = fields.length
         const invisible = _.where(fields, {invisible: true}).length;
         const atts = {}
-        console.log(total, invisible)
         _.forEach(fields, (val)=> {
             if (val.key == field.key) {
                 if (total - invisible == 1 && !field.invisible) atts.disabled = true
@@ -127,8 +125,13 @@ Template.atTable.helpers({
     },
     fields: ()=> Template.instance().data.fields.get(),
     rows: ()=> {
-        const instance = Template.instance();
-        return instance.data.collection.find(instance.data.query.get(), {
+        const instance=Template.instance()
+        let query = instance.query
+        if (!_.isEmpty(query)){
+            query={$and:[instance.data.filters.get(),query]}
+        }
+        console.log('rows query ', query)
+        return instance.data.collection.find(query, {
             sort: instance.data.sort.get(),
             limit: instance.data.limit.get(),
         })
@@ -147,14 +150,19 @@ Template.atTable.helpers({
     ,
     showMore: function () {
         const instance = Template.instance();
+        let query = instance.query
+        if (!_.isEmpty(query)){
+            query={$and:[instance.data.filters.get(),query]}
+        }
+        console.log('showMore query ', query)
         if (instance.data.settings.options.showing) {
-            return (instance.data.collection.find(instance.data.query.get(), {
+            return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),
                 limit: instance.data.limit.get(),
                 transform: instance.data.transform
             }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter'))
         } else {
-            return (instance.data.collection.find(instance.data.query.get(), {
+            return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),
                 limit: instance.data.limit.get(),
                 transform: instance.data.transform

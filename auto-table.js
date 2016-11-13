@@ -15,10 +15,10 @@ let SimpleSchema = {}
 
 
 export class AutoTable {
-    constructor(id, collection, fields, schema, settings = {}) {
+    constructor(id, collection, fields, schema, query = {}, settings = {}, publish = ()=>true) {
         check(id, String)
         check(collection, Mongo.Collection)
-
+        check(publish, Function)
         this.schema = schema
         if (Package['aldeed:simple-schema']) {
             SimpleSchema = Package['aldeed:simple-schema'].SimpleSchema
@@ -26,9 +26,11 @@ export class AutoTable {
         }
         check(schema, Match.Maybe(SimpleSchema))
         check(settings, Object)
+        check(query, Object)
         this.id = id
+        this.publish = publish
         this.collection = collection
-
+        this.query = query
         this.fields = fields
         this.settings = {
             options: {
@@ -74,7 +76,7 @@ export class AutoTable {
         if (this.settings.options.filters) {
             fields = _.map(fields, (field)=> {
                 if (!field.operator) {
-                    field.operator ='$regex'
+                    field.operator = '$regex'
                 }
                 return field
             })
