@@ -11,7 +11,8 @@
             <div class="{{settings.Klass.buttonColumnWrapper}}">
                 <button type="button" class="{{settings.Klass.buttonColumn}} " data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
-                    {{settings.msg.columns}} <span class=" {{settings.Klass.hiddenFilter}}">{{#if hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
+                    {{settings.msg.columns}} <span class=" {{settings.Klass.hiddenFilter}}">{{#if
+                        hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
                 </button>
                 <ul class="{{settings.Klass.buttonColumnList}}">
                     {{#each column in columns}}
@@ -30,7 +31,7 @@
                     {{#each column in columns}}
                         <th id="{{column.key}}" style="{{#if column.invisible}}display: none{{/if}}">
                             <a href="#"
-                               class="{{settings.Klass.link}}"
+
                                data-sort="{{column.key}}"
                                data-direction="1">{{column.label}}</a>
                             {{{sort column.key}}}
@@ -44,11 +45,12 @@
                 <tbody>
                 {{#transition in=settings.Klass.transitionIn out=settings.Klass.transitionOut}}
                     {{#each row in rows}}
-                        <tr>
+                        <a class="tr {{settings.Klass.link}}" href="{{link row}}" >
                             {{#each column in columns}}
-                                <td class="goto" style="{{#if column.invisible}}display: none{{/if}}">{{valueOf  column.key row}} </td>
+                                <td  style="{{#if column.invisible}}display: none{{/if}}">{{valueOf
+                                        column.key row}} </td>
                             {{/each}}
-                        </tr>
+                        </a>
                     {{/each}}
                 {{/transition}}
                 </tbody>

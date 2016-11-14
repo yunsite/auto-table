@@ -28,6 +28,7 @@ Template.atTable.onCreated(function () {
     const autoTable = this.data.at
     this.data.showingMore = new ReactiveVar(false)
     this.data.id = autoTable.id
+    this.link = autoTable.link
     this.data.settings = deepObjectExtend(this.data.settings || {}, autoTable.settings)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
     this.data.sessionName = `${this.id}${userId}`
@@ -35,8 +36,6 @@ Template.atTable.onCreated(function () {
     this.data.collection = this.data.collection || autoTable.collection
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.sessionName, this.data.columns || autoTable.columns)
-
-    console.log(' this.data.columns', autoTable.columns,this.data.columns.get())
     let storedColumns = _.map(this.data.columns.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
     let newColumns = _.map(autoTable.columns, (val)=>_.pick(val, 'key', 'label', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
@@ -45,9 +44,7 @@ Template.atTable.onCreated(function () {
         this.data.columns.set(autoTable.columns)
     }
     this.limit = parseInt(this.data.limit || defaultLimit)
-    console.log('this.limit', this.limit)
     this.data.limit = new ReactiveVar(this.limit)
-    console.log('this.limit', this.limit)
     this.query = autoTable.query
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(()=> {
@@ -98,6 +95,9 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
+    link(row){
+        return Template.instance().link(row)
+    },
     hiddenFilter(){
         return _.reduce(Template.instance().data.columns.get(), function (memo, field) {
                 return memo + Number(!!field.invisible && !!field.filter)
@@ -134,7 +134,6 @@ Template.atTable.helpers({
         if (!_.isEmpty(query)) {
             query = {$and: [instance.data.filters.get(), query]}
         }
-        console.log('rows query ', query)
         return instance.data.collection.find(query, {
             sort: instance.data.sort.get(),
             limit: instance.data.limit.get(),
@@ -158,7 +157,6 @@ Template.atTable.helpers({
         if (!_.isEmpty(query)) {
             query = {$and: [instance.data.filters.get(), query]}
         }
-        console.log('showMore query ', query)
         if (instance.data.settings.options.showing) {
             return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),
@@ -198,7 +196,6 @@ Template.atTable.events({
         const key = $input.val()
         //const number = $column.index('table thead th[key]')
         const invisible = !$input.prop('checked')
-        console.log(columns)
         columns = _.map(columns, (field)=> {
             if (field.key == $input.val()) {
                 field.invisible = invisible
@@ -206,17 +203,13 @@ Template.atTable.events({
             return field
         })
         instance.data.columns.set(columns)
-        console.log(columns, instance.data.columns.get())
     },
     'click .showMore'(e, instance){
         instance.data.showingMore.set(true)
-
-        console.log('instance.data.limit.get() + (this.limit || defaultLimit)', instance.data.limit.get(), (instance.limit || defaultLimit))
         instance.data.limit.set(instance.data.limit.get() + (instance.limit || defaultLimit))
     },
     'click .sortable'(e, instance) {
         const $target = $(e.target)
-        console.log($target)
         if ($target.get(0).localName == "a") {
             e.preventDefault()
             const oldSortKey = Object.keys(instance.data.sort.get())[0];
@@ -227,20 +220,10 @@ Template.atTable.events({
             } else {
                 newSort[newSortKey] = $target.data('direction');
             }
-            console.log('click sort', newSort)
             instance.data.sort.set(newSort)
         }
 
     },
-    'click .zoom'(e, instance){
-        if (Package['kadira:flow-router']) {
-            Package['kadira:flow-router'].FlowRouter.go(instance.data.settings.link.routeDefinition, instance.data.settings.link.routeData)
-        } else {
-            location.href = instance.data.settings.link.path
-        }
-
-    },
-
 });
 
 

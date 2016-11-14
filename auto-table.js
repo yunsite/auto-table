@@ -15,7 +15,7 @@ let SimpleSchema = {}
 
 
 export class AutoTable {
-    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = ()=>true}) {
+    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = ()=>true, link = ()=>'#'}) {
 
         if (!id) throw new Meteor.Error('id parameter is required')
         if (!collection) throw new Meteor.Error('collection parameter is required')
@@ -35,6 +35,7 @@ export class AutoTable {
         this.collection = collection
         this.schema = schema
         this.query = query
+        this.link = link
         this.publish = publish
         const settingsDefaults = {
             options: {

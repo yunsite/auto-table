@@ -18,10 +18,7 @@
                             </div>
                         {{/if}}
                         <input type="hidden"  value="{{operator}}"  name="{{key}}_operator">
-
                         {{> afFieldInput name=key  custom=true value=filter options=afOptionsFromSchema class=settings.klass.filterInput }}
-
-
                     </div><!-- /input-group -->
                     {{#if afFieldIsInvalid name=key }}
                         <span class="help-block">{{afFieldMessage name=key }}</span>
