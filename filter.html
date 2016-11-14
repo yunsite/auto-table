@@ -1,16 +1,16 @@
 <template name="atFilter">
     {{#autoForm  id=id  schema=schema type="normal" autosaveOnKeyup=true autosave=true}}
 
-        {{#each fields}}
+        {{#each columns}}
             <td style="{{#if invisible}}display: none{{/if}}">
-                <div class="form-group{{#if afFieldIsInvalid name=key }} has-error{{/if}}">
+                <div class="{{settings.klass.filterWrapper}} {{#if afFieldIsInvalid name=key }}{{settings.klass.filterWrapperHasError}}{{/if}}">
                     <div class=" {{#if multipleOperators}}input-group {{/if}}">
                         {{#if multipleOperators}}
-                            <div class="input-group-btn">
-                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"
+                            <div class="{{settings.klass.filterGroup}} ">
+                                <button type="button" class="{{settings.klass.filterOperatorButton}}" data-toggle="dropdown"
                                         aria-haspopup="true" aria-expanded="false">{{{selected.shortLabel}}}
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-left operator">
+                                <ul class="{{settings.klass.filterOperatorList}}">
                                     {{#each operators}}
                                         <li><a href="#{{value}}">{{{selected.shortLabel}}} {{label}}</a></li>
                                     {{/each}}
@@ -19,7 +19,7 @@
                         {{/if}}
                         <input type="hidden"  value="{{operator}}"  name="{{key}}_operator">
 
-                        {{> afFieldInput name=key value=filter options=afOptionsFromSchema class='btn-xs' }}
+                        {{> afFieldInput name=key  custom=true value=filter options=afOptionsFromSchema class=settings.klass.filterInput }}
 
 
                     </div><!-- /input-group -->

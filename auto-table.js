@@ -15,24 +15,28 @@ let SimpleSchema = {}
 
 
 export class AutoTable {
-    constructor(id, collection, fields, schema, query = {}, settings = {}, publish = ()=>true) {
-        check(id, String)
-        check(collection, Mongo.Collection)
-        check(publish, Function)
-        this.schema = schema
+    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = ()=>true}) {
+
+        if (!id) throw new Meteor.Error('id parameter is required')
+        if (!collection) throw new Meteor.Error('collection parameter is required')
+
         if (Package['aldeed:simple-schema']) {
             SimpleSchema = Package['aldeed:simple-schema'].SimpleSchema
-            // this.schema = this.schema.pick(_.pluck(fields,'key'));
+            // this.schema = this.schema.pick(_.pluck(columns,'key'));
         }
-        check(schema, Match.Maybe(SimpleSchema))
+        if (schema && !schema instanceof SimpleSchema) throw new Meteor.Error('schema parameter has to be a instance of SimpleSchema')
+        if (collection && !collection instanceof Mongo.Collection) throw new Meteor.Error('collection parameter has to be a instance of Mongo.Collection')
+        check(id, String)
+        check(publish, Function)
         check(settings, Object)
         check(query, Object)
         this.id = id
-        this.publish = publish
+        this.columns = columns
         this.collection = collection
+        this.schema = schema
         this.query = query
-        this.fields = fields
-        this.settings = {
+        this.publish = publish
+        const settingsDefaults = {
             options: {
                 loadingTemplate: 'atLoading',
                 columnsSort: false,
@@ -55,6 +59,12 @@ export class AutoTable {
             },
             Klass: {
                 hiddenFilter: 'small danger',
+                filterInput: 'input-xs',
+                filterWrapper: 'form-group',
+                filterWrapperHasError: 'has-error',
+                filterGroup: 'input-group-btn',
+                filterOperatorButton: 'btn btn-default dropdown-toggle input-sm',
+                filterOperatorList: 'dropdown-menu dropdown-menu-left operator',
                 tableWrapper: 'table-responsive',
                 table: 'table table-bordered table-condensed table-striped',
                 buttonColumnWrapper: ' btn-group at-checkbox-group pull-right margin-up-down',
@@ -72,40 +82,63 @@ export class AutoTable {
                 noRecords: 'col-xs-12 col-sm-12 col-md-12 col-lg-12'
             },
         }
-        this.settings = deepObjectExtend(settings, this.settings)
+        this.settings = deepObjectExtend(settings, settingsDefaults)
         if (this.settings.options.filters) {
-            fields = _.map(fields, (field)=> {
-                if (!field.operator) {
-                    field.operator = '$regex'
+            if (!schema) throw new Meteor.Error('schema parameter is required when filter option in on')
+            columns = _.map(columns, (column)=> {
+                if (!column.label && this.schema) {
+                    column.label = this.schema.label(column.key) || ''
                 }
-                return field
+                if (!column.operator) {
+                    column.operator = '$regex'
+                }
+                return column
             })
         }
-        check(fields, [{
-            label: Match.Optional(String),
-            key: String,
+        console.log('columns',columns)
+        check(columns, [{
+            label: Match.Maybe(String),
+            key: Match.Optional(String),
+            template: Match.Optional(Object),
             invisible: Match.Maybe(Boolean),
-            operator: Match.Where((operator)=> {
+            operator:  Match.Optional(Match.Where((operator)=> {
                 if (this.settings.options.filters) {
                     check(operator, String)
                 }
                 return true
-            }),
+            })),
             operators: Match.Optional([{
                 label: String,
                 shortLabel: String,
                 operator: String,
             }])
         }])
+
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')
         if (this.settings.options.filters && !Package['aldeed:autoform']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:autoform package')
-        if (this.settings.options.filters && !schema instanceof SimpleSchema) throw new Meteor.Error('Missing parameter', 'To use filters option you need set up schema parameter')
         if (this.settings.options.columnsSort && Meteor.isClient && !$.ui && !$.ui.sortable) throw new Meteor.Error('Missing package', 'Columns sort option need Jquery UI sortable installed')
 
         AutoTable.instances = AutoTable.instances ? AutoTable.instances : []
         AutoTable.instances.push(this)
+console.log('AutoTable',this)
+
     }
 }
 AutoTable.getInstance = function (id) {
     return _.findWhere(this.instances, {id})
+}
+AutoTable.pickFromSchema = function (schema, ...arg) {
+    if (Array.isArray(arg[0])) arg = arg[0]
+    let schemas = schema._schema
+    schemas = _.pick(schemas, arg)
+    for (let key in schemas) {
+        schemas[key].optional = true
+        if (schemas[key].autoform && schemas[key].autoform.afFormGroup)
+            delete schemas[key].autoform.afFormGroup
+    }
+    if (Package['aldeed:simple-schema']) {
+        SimpleSchema = Package['aldeed:simple-schema'].SimpleSchema
+        // this.schema = this.schema.pick(_.pluck(columns,'key'));
+    }
+    return new SimpleSchema(schemas)
 }

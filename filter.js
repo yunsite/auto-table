@@ -9,8 +9,8 @@ import {AutoForm} from "meteor/aldeed:autoform"
  return filters[key]
  */
 Template.atFilter.helpers({
-    fields () {
-        return this.fields
+    columns () {
+        return this.columns
     },
     schema(){
         return AutoTable.getInstance(this.id).schema
@@ -46,27 +46,27 @@ Template.atFilter.onCreated(function () {
                 console.log('onSubmit', $(this.event.currentTarget))
                 const formData = new FormData($(this.event.currentTarget).get(0))
                 let selector = {},  filters = {}
-                let fields = parentData.fields.get()
+                let columns = parentData.columns.get()
                 data={}
-                for (field of fields) {
-                    const val = formData.get(field.key)
-                    const operator = formData.get(field.key + '_operator')
-                    field.operator=operator
-                    if (val !== '') {
+                for (column of columns) {
+                    const val = formData.get(column.key)
+                    const operator = formData.get(column.key + '_operator')
+                    column.operator=operator
+                    if (val !== '' && val!==null) {
                         selector[operator] = val
                         if (operator == '$regex')  selector['$options'] = 'gi'
-                        filters[field.key] = _.clone(selector)
-                        field.filter = val
+                        filters[column.key] = _.clone(selector)
+                        column.filter = val
 
                     } else {
-                        delete filters[field.key]
-                        delete field.filter
+                        delete filters[column.key]
+                        delete column.filter
                     }
 
                 }
 
                 parentData.filters.set(filters)
-                parentData.fields.set(fields)
+                parentData.columns.set(columns)
                 return false
             }
         }

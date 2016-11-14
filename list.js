@@ -23,29 +23,33 @@ const areDifferents = function (coll1, coll2) {
 }
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
+    if (!this.data.at) throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
+    if (!this.data.at instanceof AutoTable) throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
+    const autoTable = this.data.at
     this.data.showingMore = new ReactiveVar(false)
-    if (!this.data.id) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be an id parameter')
-    autoTable = AutoTable.getInstance(this.data.id)
-    this.data.settings = deepObjectExtend(this.data.settings, autoTable.settings)
+    this.data.id = autoTable.id
+    this.data.settings = deepObjectExtend(this.data.settings || {}, autoTable.settings)
+    const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
+    this.data.sessionName = `${this.id}${userId}`
     this.data.filters = new PersistentReactiveVar('filters' + this.sessionName, {})
     this.data.collection = this.data.collection || autoTable.collection
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
-    this.data.fields = new PersistentReactiveVar('fields' + this.sessionName, this.data.fields || autoTable.fields)
-    let storeFields = _.map(this.data.fields.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
-    let newFields = _.map(autoTable.fields, (val)=>_.pick(val, 'key', 'label', 'operators'))
-    newFields = _.sortBy(newFields, 'key')
-    storeFields = _.sortBy(storeFields, 'key')
-    if (areDifferents(storeFields, newFields)) {
-        this.data.fields.set(autoTable.fields)
+    this.data.columns = new PersistentReactiveVar('columns' + this.sessionName, this.data.columns || autoTable.columns)
+
+    console.log(' this.data.columns', autoTable.columns,this.data.columns.get())
+    let storedColumns = _.map(this.data.columns.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
+    let newColumns = _.map(autoTable.columns, (val)=>_.pick(val, 'key', 'label', 'operators'))
+    newColumns = _.sortBy(newColumns, 'key')
+    storedColumns = _.sortBy(storedColumns, 'key')
+    if (areDifferents(storedColumns, newColumns)) {
+        this.data.columns.set(autoTable.columns)
     }
-    const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
-    this.data.sessionName = `${this.id}${userId}`
     this.limit = parseInt(this.data.limit || defaultLimit)
     console.log('this.limit', this.limit)
     this.data.limit = new ReactiveVar(this.limit)
     console.log('this.limit', this.limit)
     this.query = autoTable.query
-    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, this.data.sort || {});
+    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(()=> {
         console.log('autorun query ', this.data.filters.get())
         this.subscribe('atPubSub', this.data.id, this.data.limit.get(), this.data.filters.get(), this.data.sort.get(), {
@@ -59,7 +63,7 @@ Template.atTable.onRendered(function () {
         this.autorun(()=> {
             if (this.subscriptionsReady() && first) {
                 first = false
-                let fields = this.data.fields.get()
+                let columns = this.data.columns.get()
                 Meteor.setTimeout(()=> {
                     const instance = this
                     this.$('.sortable').sortable({
@@ -74,10 +78,10 @@ Template.atTable.onRendered(function () {
                         placeholder: "splaceholder",
                         update: function (event, ui) {
                             const keys = $(this).sortable("toArray")
-                            fields = _.sortBy(fields, function (field) {
+                            columns = _.sortBy(columns, function (field) {
                                 return keys.indexOf(field.key)
                             });
-                            instance.data.fields.set(fields)
+                            instance.data.columns.set(columns)
                             event.preventDefault()
                         },
                     }).disableSelection()
@@ -95,18 +99,18 @@ Template.atTable.onDestroyed(function () {
 
 Template.atTable.helpers({
     hiddenFilter(){
-        return _.reduce(Template.instance().data.fields.get(), function (memo, field) {
+        return _.reduce(Template.instance().data.columns.get(), function (memo, field) {
                 return memo + Number(!!field.invisible && !!field.filter)
             }, 0) > 0
     },
     filtered: ()=>!!_.isEmpty(Template.instance().data.filters.get()),
     atts: (field)=> {
         const instance = Template.instance();
-        let fields = instance.data.fields.get()
-        const total = fields.length
-        const invisible = _.where(fields, {invisible: true}).length;
+        let columns = instance.data.columns.get()
+        const total = columns.length
+        const invisible = _.where(columns, {invisible: true}).length;
         const atts = {}
-        _.forEach(fields, (val)=> {
+        _.forEach(columns, (val)=> {
             if (val.key == field.key) {
                 if (total - invisible == 1 && !field.invisible) atts.disabled = true
                 if (!field.invisible) atts.checked = true
@@ -114,7 +118,7 @@ Template.atTable.helpers({
             atts.value = field.key
         })
         return atts
-        //instance.fields.set(fields)
+        //instance.columns.set(columns)
     },
     showingMore: ()=>Template.instance().data.showingMore.get(),
     settings: ()=>Template.instance().data.settings,
@@ -123,12 +127,12 @@ Template.atTable.helpers({
             return prev ? prev[curr] : undefined
         }, obj || self)
     },
-    fields: ()=> Template.instance().data.fields.get(),
+    columns: ()=> Template.instance().data.columns.get(),
     rows: ()=> {
-        const instance=Template.instance()
+        const instance = Template.instance()
         let query = instance.query
-        if (!_.isEmpty(query)){
-            query={$and:[instance.data.filters.get(),query]}
+        if (!_.isEmpty(query)) {
+            query = {$and: [instance.data.filters.get(), query]}
         }
         console.log('rows query ', query)
         return instance.data.collection.find(query, {
@@ -151,8 +155,8 @@ Template.atTable.helpers({
     showMore: function () {
         const instance = Template.instance();
         let query = instance.query
-        if (!_.isEmpty(query)){
-            query={$and:[instance.data.filters.get(),query]}
+        if (!_.isEmpty(query)) {
+            query = {$and: [instance.data.filters.get(), query]}
         }
         console.log('showMore query ', query)
         if (instance.data.settings.options.showing) {
@@ -174,6 +178,7 @@ Template.atTable.helpers({
     {
         const instance = Template.instance()
         const sortObj = instance.data.sort.get()
+        if (_.isEmpty(sortObj)) return ''
         const sortKey = Object.keys(sortObj)[0];
         if (sort == sortKey) {
             if (sortObj[sortKey] > 0) {
@@ -188,20 +193,20 @@ Template.atTable.helpers({
 
 Template.atTable.events({
     'change input[name="columns"]'(e, instance){
-        let fields = instance.data.fields.get()
+        let columns = instance.data.columns.get()
         const $input = $(e.currentTarget)
         const key = $input.val()
         //const number = $column.index('table thead th[key]')
         const invisible = !$input.prop('checked')
-        console.log(fields)
-        fields = _.map(fields, (field)=> {
+        console.log(columns)
+        columns = _.map(columns, (field)=> {
             if (field.key == $input.val()) {
                 field.invisible = invisible
             }
             return field
         })
-        instance.data.fields.set(fields)
-        console.log(fields, instance.data.fields.get())
+        instance.data.columns.set(columns)
+        console.log(columns, instance.data.columns.get())
     },
     'click .showMore'(e, instance){
         instance.data.showingMore.set(true)

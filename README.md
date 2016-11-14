@@ -35,23 +35,23 @@ Allow to create a table of records in minutes
 ### Configuration 
 ```javascript
 //have to be share code
-const autoTable= AutoTable(id,collection,fields,query,settings,publish)
+const autoTable= AutoTable({options}) 
 ```
 
-#### AutoTable Arguments
+#### AutoTable options obj
 |  name | req/opt  | type  | description  |  
 |---|---|---|---|
 |  id |  required | String  |  Unique id in all app for this table |
 | collection  | required  | Mongo Collection  |  where the data comes from   |  
-|  fields |  required if not schema present | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
-|  schema |  required if use filter option (use null if not)| SimpleSchema  |  see [fields Object format ](http://) |  
-|  query |  required | Object  | Mongo selector for filter the publication for publish all docs use {} |  
+|  fields |  required  | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
+|  schema |  required if use filter option (use null if not)| SimpleSchema  | You can and maybe you need use a diferent schema that you use for form see [fields Object format ](http://) |  
+|  query |  optional | Object  | Mongo selector for filter the publication for publish all docs use {} |  
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
 |  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
 
 
 
-#### <a name="fieldsObject"></a>fields Object format
+##### <a name="fieldsObject"></a>fields Object format
 ```
  {
     label: 'email' //Optional {String} Name showed in header of column, if Filter option is on and this parameter is missing the label will be taken from Schema

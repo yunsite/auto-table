@@ -1,7 +1,5 @@
 <template name="atTable">
     <div class="atTable">
-        {{settings.options.loadingTemplate}}
-
         {{>atShowing settings=settings total=total showing=showing}}
         {{#unless Template.subscriptionsReady }}
             <div class="center-loading">
@@ -16,41 +14,39 @@
                     {{settings.msg.columns}} <span class=" {{settings.Klass.hiddenFilter}}">{{#if hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
                 </button>
                 <ul class="{{settings.Klass.buttonColumnList}}">
-                    {{#each field in fields}}
+                    {{#each column in columns}}
                         <li {{settings.Klass.buttonColumnItem}} ><p><label {{settings.Klass.buttonColumnLabel}} > <input
-                                name="columns" type="checkbox" {{atts field}}> {{field.label}}
+                                name="columns" type="checkbox" {{atts column}}> {{column.label}}
                         </label></p></li>
                     {{/each}}
                 </ul>
             </div>
         {{/if}}
         <div class="clearfix"></div>
-        <div class="{{settings.Klass.tableWrapper}}" style="overflow: visible">
+        <div class="{{settings.Klass.tableWrapper}}" style="overflow-y: visible">
             <table class="{{settings.Klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
                 <thead>
                 <tr class="sortable">
-                    {{#each field in fields}}
-                        <th id="{{field.key}}" style="{{#if field.invisible}}display: none{{/if}}">
+                    {{#each column in columns}}
+                        <th id="{{column.key}}" style="{{#if column.invisible}}display: none{{/if}}">
                             <a href="#"
                                class="{{settings.Klass.link}}"
-                               data-sort="{{field.key}}"
-                               data-direction="1">{{field.label}}</a>
-                            {{{sort field.key}}}
+                               data-sort="{{column.key}}"
+                               data-direction="1">{{column.label}}</a>
+                            {{{sort column.key}}}
                         </th>
                     {{/each}}
                 </tr>
                 {{#if settings.options.filters}}
-
-                    {{>atFilter id=id fields=fields}}
-
+                    {{>atFilter id=id columns=columns}}
                 {{/if}}
                 </thead>
                 <tbody>
                 {{#transition in=settings.Klass.transitionIn out=settings.Klass.transitionOut}}
                     {{#each row in rows}}
                         <tr>
-                            {{#each field in fields}}
-                                <td class="goto" style="{{#if field.invisible}}display: none{{/if}}">{{valueOf  field.key row}} </td>
+                            {{#each column in columns}}
+                                <td class="goto" style="{{#if column.invisible}}display: none{{/if}}">{{valueOf  column.key row}} </td>
                             {{/each}}
                         </tr>
                     {{/each}}
