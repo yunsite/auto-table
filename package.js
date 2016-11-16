@@ -1,6 +1,6 @@
 Package.describe({
     name: 'cesarve:auto-table',
-    version: '0.0.3',
+    version: '0.1.0',
     summary: 'Create paginate list of records in minutes',
     git: 'https://github.com/cesarve77/auto-table',
     documentation: 'README.md'
