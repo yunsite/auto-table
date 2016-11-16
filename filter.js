@@ -19,11 +19,11 @@ Template.atFilter.helpers({
         return Array.isArray(this.operators) && this.operators.length > 1
     },
     selected(){
-        return _.findWhere(this.operators, {operator: this.operator})
+        const  selected=_.findWhere(this.operators, {operator: this.operator})
+        console.log('****______-----...>>>selected',selected)
+        return selected
     },
-    keyOperator(){
-        return this.key + '_operator'
-    }
+
 
 
 });
@@ -31,14 +31,16 @@ Template.atFilter.helpers({
 
 Template.atFilter.events({
     'click .operator a'(e, instance){
-        const $form = $(e.currentTarget).parents('.form-group')
-        const $input = $form.find('input[type="hidden"]')
-        const $btn = $form.find('button')
+        const $parent = $(e.currentTarget).parents('.input-group ')
+        const $form = $(e.currentTarget).parents('form')
+        const $input = $parent.find('input[type="hidden"].operator')
+        const $btn = $parent.find('button')
         $input.val(this.operator)
+        console.log($parent,$form,$input,$btn,this.operator)
         $form.submit()
     }
 });
-
+formData1 = ''
 Template.atFilter.onCreated(function () {
     this.filters = new PersistentReactiveVar('filters' + this.data.id, {})
     const parentData = Template.parentData()
@@ -50,31 +52,19 @@ Template.atFilter.onCreated(function () {
         {
 
             onSubmit: function (doc, modifier, currentDoc) {
-                console.log('doc,modifier,currentDoc', doc, modifier, currentDoc)
-                console.log('onSubmit', $(this.event.currentTarget))
                 const formData = new FormData($(this.event.currentTarget).get(0))
-                console.log(formData)
-                let selector = {}, filters = {}
                 let columns = parentData.columns.get()
                 data = {}
                 for (let column of columns) {
-                    const val =formData.get(column.key)
-                    const operator = formData.get(column.key + '_operator')
-                    column.operator = operator
+                    let val =formData.get(column.key)
+                    if (Array.isArray(doc[column.key])) val= doc[column.key]
+                    column.operator = formData.get(column.key + '_operator')
                     if (val !== '' && val !== null) {
-                        selector[operator] = val
-                        if (operator == '$regex') selector['$options'] = 'gi'
-                        filters[column.key] = _.clone(selector)
                         column.filter = val
-
                     } else {
-                        delete filters[column.key]
                         delete column.filter
                     }
-
                 }
-
-                parentData.filters.set(formData)
                 parentData.columns.set(columns)
                 return false
             }

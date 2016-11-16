@@ -36,7 +36,6 @@ Template.atTable.onCreated(function () {
     this.data.collection = this.data.collection || autoTable.collection
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.sessionName, this.data.columns || autoTable.columns)
-    console.log('autoTable.columnsautoTable.columnsautoTable.columnsautoTable.columns',autoTable.columns)
     let storedColumns = _.map(this.data.columns.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
     let newColumns = _.map(autoTable.columns, (val)=>_.pick(val, 'key', 'label', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
@@ -46,17 +45,40 @@ Template.atTable.onCreated(function () {
     }
     this.limit = parseInt(this.data.limit || defaultLimit)
     this.data.limit = new ReactiveVar(this.limit)
+    this.data.limit = new ReactiveVar(this.limit)
     this.query = autoTable.query
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(()=> {
-        console.log('autorun query ', this.data.filters.get())
-        const filters=this.data.filters.get()
-        autoTable.schema(filters)
-        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), this.data.filters.get(), this.data.sort.get(), {
+       const filters=createFilter(this.data.columns.get(),autoTable.schema)
+        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), filters, this.data.sort.get(), {
             onReady: ()=>this.data.showingMore.set(false)
         })
     })
 });
+function createFilter(columns,schema){
+    //columns has all information to create the filters
+    //but has to be cleans (strings to dates for eg)
+    // and has to be formated to selctor mongo
+    const cleaned={}
+    for (const column of columns){
+        if (column.filter){
+            cleaned[column.key]=column.filter
+        }
+    }
+    schema.clean(cleaned)
+    const filters={}
+    for (let column of columns) {
+        const selector={}
+        const val =cleaned[column.key]
+        const operator = column.operator
+        if (val !== '' && val !== null && val!==undefined) {
+            selector[operator] = val
+            if (operator == '$regex') selector['$options'] = 'gi'
+            filters[column.key] = selector
+        }
+    }
+    return filters
+}
 Template.atTable.onRendered(function () {
     let first = true
     if (this.data.settings.options.columnsSort) {

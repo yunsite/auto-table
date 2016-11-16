@@ -112,12 +112,6 @@ export class AutoTable {
                 operator: String,
             }])
         }])
-        //attach the operator keys
-        if (this.settings.options.filters){
-            for (const  key of schema._schemaKeys){
-                this.schema= new SimpleSchema([this.schema, {[key + '_operator']: {type: String, optional: true} }]);
-            }
-        }
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')
         if (this.settings.options.filters && !Package['aldeed:autoform']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:autoform package')
         if (this.settings.options.columnsSort && Meteor.isClient && !$.ui && !$.ui.sortable) throw new Meteor.Error('Missing package', 'Columns sort option need Jquery UI sortable installed')

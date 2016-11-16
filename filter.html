@@ -1,6 +1,8 @@
 <template name="atFilter">
-    {{#autoForm  id=id  schema=schema type="normal" autosaveOnKeyup=true autosave=true }}
+
+    {{#autoForm  id=id  schema=schema type="normal" autosaveOnKeyup=true autosave=true  autoConvert=false}}
         {{#each columns}}
+
             <td style="{{#if invisible}}display: none{{/if}}">
                 <div class="{{../../../settings.klass.filterWrapper}} {{#if afFieldIsInvalid name=key }}{{../../../settings.klass.filterWrapperHasError}}{{/if}}">
                     <div class=" {{#if multipleOperators}}input-group {{/if}}">
@@ -17,8 +19,8 @@
                             </div>
                         {{/if}}
 
-                        {{> afFieldInput name=keyOperator  value=operator type="hidden" }}
-                        {{> afFieldInput name=key  custom=true value=filter options=afOptionsFromSchema class=../../../settings.klass.filterInput }}
+                        <input name="{{key}}_operator" value={{operator}} type="hidden"  class="operator">
+                        {{> afFieldInput name=key  custom=true value=filter class=../../../settings.klass.filterInput }}
                     </div><!-- /input-group -->
                     {{#if afFieldIsInvalid name=key }}
                         <span class="help-block">{{afFieldMessage name=key }}</span>
