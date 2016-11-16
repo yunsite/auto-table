@@ -48,6 +48,8 @@ const autoTable= AutoTable({options})
 |  query |  optional | Object  | Mongo selector for filter the publication for publish all docs use {} |  
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
 |  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
+|  publishExtraFields | optional  |  Array | for publish extra fields|
+|  link | optional  |  Function | receive as parameter all the doc ans has to return a link for this row|
 
 
 

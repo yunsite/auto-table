@@ -13,14 +13,15 @@ Meteor.publish('atPubSub', function (id, limit, query={}, sort={}) {
     const autoTable = AutoTable.getInstance(id)
     if (!autoTable) throw new Meteor.Error ('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
     let fields = _.pluck(autoTable.columns, 'key')
-    console.log(fields)
+    const publishExtraFields = autoTable.publishExtraFields ||[]
+    fields=fields.concat(publishExtraFields)
     fields=_.map(fields,(field)=>{
         //todo remove this, when $ field operator restricion have been removed
         // see https://docs.meteor.com/api/collections.html#fieldspecifiers
         return field.split('.')[0]
     })
     fields = _.object(fields, new Array(fields.length).fill(true))
-    console.log('11111',query,'222222')
+    console.log('11111',fields,'222222')
 
     if (!_.isEmpty(autoTable.query)){
         query={$and:[query,autoTable.query]}
