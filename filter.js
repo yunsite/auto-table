@@ -20,13 +20,18 @@ Template.atFilter.helpers({
     },
     selected(){
         return _.findWhere(this.operators, {operator: this.operator})
+    },
+    keyOperator(){
+        return this.key + '_operator'
     }
+
+
 });
 
 
 Template.atFilter.events({
     'click .operator a'(e, instance){
-        const $form=$(e.currentTarget).parents('.form-group')
+        const $form = $(e.currentTarget).parents('.form-group')
         const $input = $form.find('input[type="hidden"]')
         const $btn = $form.find('button')
         $input.val(this.operator)
@@ -38,23 +43,27 @@ Template.atFilter.onCreated(function () {
     this.filters = new PersistentReactiveVar('filters' + this.data.id, {})
     const parentData = Template.parentData()
     const self = this
-    console.log('Template.atFilter.onCreated', parentData, this)
+    //this.settings=parentData.settings
+    console.log(' this.data.settings', this.settings)
     AutoForm.addHooks(
         this.data.id,
         {
+
             onSubmit: function (doc, modifier, currentDoc) {
+                console.log('doc,modifier,currentDoc', doc, modifier, currentDoc)
                 console.log('onSubmit', $(this.event.currentTarget))
                 const formData = new FormData($(this.event.currentTarget).get(0))
-                let selector = {},  filters = {}
+                console.log(formData)
+                let selector = {}, filters = {}
                 let columns = parentData.columns.get()
-                data={}
-                for (column of columns) {
-                    const val = formData.get(column.key)
+                data = {}
+                for (let column of columns) {
+                    const val =formData.get(column.key)
                     const operator = formData.get(column.key + '_operator')
-                    column.operator=operator
-                    if (val !== '' && val!==null) {
+                    column.operator = operator
+                    if (val !== '' && val !== null) {
                         selector[operator] = val
-                        if (operator == '$regex')  selector['$options'] = 'gi'
+                        if (operator == '$regex') selector['$options'] = 'gi'
                         filters[column.key] = _.clone(selector)
                         column.filter = val
 
@@ -65,7 +74,7 @@ Template.atFilter.onCreated(function () {
 
                 }
 
-                parentData.filters.set(filters)
+                parentData.filters.set(formData)
                 parentData.columns.set(columns)
                 return false
             }

@@ -43,7 +43,7 @@ const autoTable= AutoTable({options})
 |---|---|---|---|
 |  id |  required | String  |  Unique id in all app for this table |
 | collection  | required  | Mongo Collection  |  where the data comes from   |  
-|  fields |  required  | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |  
+|  columns |  required  | Array \[Object\]  |  Objects in field array has this format see [fields Object format ](fieldsObject) |
 |  schema |  required if use filter option (use null if not)| SimpleSchema  | You can and maybe you need use a diferent schema that you use for form see [fields Object format ](http://) |  
 |  query |  optional | Object  | Mongo selector for filter the publication for publish all docs use {} |  
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
@@ -117,7 +117,7 @@ const autoTable= AutoTable({options})
             columnsSort: true, // {Boolean} allow to order the columns
             columnsDisplay: true, // {Boolean} allow to show/hide columns
             showing: false, {Boolean} //show legend (Showing 15 records from 143) //need to install 'tmeasday:publish-counts' package
-            filter: false, {Boolean}  //show filter for each field
+            filters: false, {Boolean}  //show filter for each field
         },
         msg: { // Messages (ypu can custumize to any languaje )
             columns: 'Columns', //{String} text for Button show/hide columns 
@@ -131,7 +131,7 @@ const autoTable= AutoTable({options})
             noRecords: 'There is not records ' //{String} No records message
             noRecordsCriteria: 'There is not families with this criteria' //{String} No records message when query is not empty
         },
-        Klass: { //individual class, works with bootstrap 3 out of the box 
+        klass: { //individual class, works with bootstrap 3 out of the box
             tableWrapper: 'table-responsive',
             table: 'table table-bordered table-condensed table-striped',
             link: '',
@@ -149,13 +149,13 @@ const autoTable= AutoTable({options})
 ## Usage
 
 ```Blaze
-  {{>atTable id='id1' query=query settings=settings}}
+  {{>atTable at=myCollectionAutoTableInstance  query=query settings=settings}}
 ```
 #### Argumens
 
 |  name | req/opt  | type  | description  |  
 |---|---|---|---|
-|  id | required  | String  | The same used to configure the table (see above)  | 
+|  at | required  | AutoTable instance  | The same used to configure the table (see above)  |
 | customFilter | optional | Object | Mongo selector to hook into filter the docs (no cares about publication for this use query in AutoTable Arguments)
 |  settings | optional  | Object  | override settings values (see above)  | 
 

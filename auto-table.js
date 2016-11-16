@@ -15,7 +15,7 @@ let SimpleSchema = {}
 
 
 export class AutoTable {
-    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = ()=>true, link = ()=>'#'}) {
+    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = () => true, link = () => '#'}) {
 
         if (!id) throw new Meteor.Error('id parameter is required')
         if (!collection) throw new Meteor.Error('collection parameter is required')
@@ -31,7 +31,6 @@ export class AutoTable {
         check(settings, Object)
         check(query, Object)
         this.id = id
-        this.columns = columns
         this.collection = collection
         this.schema = schema
         this.query = query
@@ -58,9 +57,9 @@ export class AutoTable {
                 noRecordsCriteria: 'There are not records with this criteria',
                 hiddenFilter: '(hidden filters)'
             },
-            Klass: {
+            klass: {
                 hiddenFilter: 'small danger',
-                filterInput: 'input-xs',
+                filterInput: 'input-sm',
                 filterWrapper: 'form-group',
                 filterWrapperHasError: 'has-error',
                 filterGroup: 'input-group-btn',
@@ -84,25 +83,24 @@ export class AutoTable {
             },
         }
         this.settings = deepObjectExtend(settings, settingsDefaults)
-        if (this.settings.options.filters) {
-            if (!schema) throw new Meteor.Error('schema parameter is required when filter option in on')
-            columns = _.map(columns, (column)=> {
-                if (!column.label && this.schema) {
-                    column.label = this.schema.label(column.key) || ''
-                }
-                if (!column.operator) {
-                    column.operator = '$regex'
-                }
-                return column
-            })
-        }
-        console.log('columns',columns)
+        if (!schema && this.settings.options.filters) throw new Meteor.Error('schema parameter is required when filter option is on')
+        columns = _.map(columns, (column) => {
+            if (!column.label && this.schema) {
+                column.label = this.schema.label(column.key) || ''
+            }
+            if (!column.operator) {
+                column.operator = '$regex'
+            }
+            return column
+        })
+
+        this.columns = columns
         check(columns, [{
             label: Match.Maybe(String),
             key: Match.Optional(String),
             template: Match.Optional(Object),
             invisible: Match.Maybe(Boolean),
-            operator:  Match.Optional(Match.Where((operator)=> {
+            operator: Match.Optional(Match.Where((operator) => {
                 if (this.settings.options.filters) {
                     check(operator, String)
                 }
@@ -114,15 +112,18 @@ export class AutoTable {
                 operator: String,
             }])
         }])
-
+        //attach the operator keys
+        if (this.settings.options.filters){
+            for (const  key of schema._schemaKeys){
+                this.schema= new SimpleSchema([this.schema, {[key + '_operator']: {type: String, optional: true} }]);
+            }
+        }
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')
         if (this.settings.options.filters && !Package['aldeed:autoform']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:autoform package')
         if (this.settings.options.columnsSort && Meteor.isClient && !$.ui && !$.ui.sortable) throw new Meteor.Error('Missing package', 'Columns sort option need Jquery UI sortable installed')
 
         AutoTable.instances = AutoTable.instances ? AutoTable.instances : []
         AutoTable.instances.push(this)
-console.log('AutoTable',this)
-
     }
 }
 AutoTable.getInstance = function (id) {

@@ -36,6 +36,7 @@ Template.atTable.onCreated(function () {
     this.data.collection = this.data.collection || autoTable.collection
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.sessionName, this.data.columns || autoTable.columns)
+    console.log('autoTable.columnsautoTable.columnsautoTable.columnsautoTable.columns',autoTable.columns)
     let storedColumns = _.map(this.data.columns.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
     let newColumns = _.map(autoTable.columns, (val)=>_.pick(val, 'key', 'label', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
@@ -49,6 +50,8 @@ Template.atTable.onCreated(function () {
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(()=> {
         console.log('autorun query ', this.data.filters.get())
+        const filters=this.data.filters.get()
+        autoTable.schema(filters)
         this.subscribe('atPubSub', this.data.id, this.data.limit.get(), this.data.filters.get(), this.data.sort.get(), {
             onReady: ()=>this.data.showingMore.set(false)
         })

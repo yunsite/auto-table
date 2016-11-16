@@ -20,6 +20,8 @@ Meteor.publish('atPubSub', function (id, limit, query={}, sort={}) {
         return field.split('.')[0]
     })
     fields = _.object(fields, new Array(fields.length).fill(true))
+    console.log(query)
+
     if (!_.isEmpty(autoTable.query)){
         query={$and:[query,autoTable.query]}
     }
@@ -32,5 +34,7 @@ Meteor.publish('atPubSub', function (id, limit, query={}, sort={}) {
         Counts=Counts.Counts
         Counts.publish(this, 'atCounter', autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
+    console.log(query)
+
     return autoTable.collection.find(query, {fields, sort, limit})
 })

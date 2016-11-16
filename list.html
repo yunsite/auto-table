@@ -8,15 +8,15 @@
         {{/unless}}
         {{#if settings.options.columnsDisplay}}
 
-            <div class="{{settings.Klass.buttonColumnWrapper}}">
-                <button type="button" class="{{settings.Klass.buttonColumn}} " data-toggle="dropdown"
+            <div class="{{settings.klass.buttonColumnWrapper}}">
+                <button type="button" class="{{settings.klass.buttonColumn}} " data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
-                    {{settings.msg.columns}} <span class=" {{settings.Klass.hiddenFilter}}">{{#if
+                    {{settings.msg.columns}} <span class=" {{settings.klass.hiddenFilter}}">{{#if
                         hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
                 </button>
-                <ul class="{{settings.Klass.buttonColumnList}}">
+                <ul class="{{settings.klass.buttonColumnList}}">
                     {{#each column in columns}}
-                        <li {{settings.Klass.buttonColumnItem}} ><p><label {{settings.Klass.buttonColumnLabel}} > <input
+                        <li {{settings.klass.buttonColumnItem}} ><p><label {{settings.klass.buttonColumnLabel}} > <input
                                 name="columns" type="checkbox" {{atts column}}> {{column.label}}
                         </label></p></li>
                     {{/each}}
@@ -24,8 +24,8 @@
             </div>
         {{/if}}
         <div class="clearfix"></div>
-        <div class="{{settings.Klass.tableWrapper}}" style="overflow-y: visible">
-            <table class="{{settings.Klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
+        <div class="{{settings.klass.tableWrapper}}" style="overflow-y: visible">
+            <table class="{{settings.klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
                 <thead>
                 <tr class="sortable">
                     {{#each column in columns}}
@@ -43,9 +43,9 @@
                 {{/if}}
                 </thead>
                 <tbody>
-                {{#transition in=settings.Klass.transitionIn out=settings.Klass.transitionOut}}
+                {{#transition in=settings.klass.transitionIn out=settings.klass.transitionOut}}
                     {{#each row in rows}}
-                        <a class="tr {{settings.Klass.link}}" href="{{link row}}" >
+                        <a class="tr {{settings.klass.link}}" href="{{link row}}" >
                             {{#each column in columns}}
                                 <td  style="{{#if column.invisible}}display: none{{/if}}">{{valueOf
                                         column.key row}} </td>
@@ -63,15 +63,15 @@
             {{#if Template.subscriptionsReady }}
                 {{#if showMore}}
 
-                    <button class="{{settings.Klass.showMore}} showMore">{{{settings.msg.showMore}}}</button>
+                    <button class="{{settings.klass.showMore}} showMore">{{{settings.msg.showMore}}}</button>
                 {{/if}}
             {{/if}}
         {{/if}}
         <br>
         {{#unless rows.count}}
             {{#if Template.subscriptionsReady }}
-                <div class="{{settings.Klass.noRecordsWrapper}}">
-                    <div class="{{settings.Klass.noRecordsWrapper}}">
+                <div class="{{settings.klass.noRecordsWrapper}}">
+                    <div class="{{settings.klass.noRecordsWrapper}}">
                         {{#if filtered}}
                             {{{settings.msg.noRecordsCriteria}}}
                         {{else}}
@@ -96,8 +96,8 @@
 
 <template name="atShowing">
     {{#if settings.options.showing}}
-        <div class="{{settings.Klass.showingWrapper}}">
-            <div class="{{settings.Klass.showing}}">
+        <div class="{{settings.klass.showingWrapper}}">
+            <div class="{{settings.klass.showing}}">
                 {{settings.msg.showing}} {{showing}} {{settings.msg.from}} {{total}}
             </div>
         </div>
