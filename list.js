@@ -2,13 +2,13 @@ import {PersistentReactiveVar} from "meteor/cesarve:persistent-reactive-var"
 import {ReactiveVar} from "meteor/reactive-var"
 import {AutoTable} from "./auto-table"
 import {Template} from "meteor/templating"
-import {_} from 'meteor/underscore'
 import "./loading.css"
 import "./auto-table.css"
 import "./list.html"
 import "./loading.html"
 import "./filter"
-import {deepObjectExtend} from "./auto-table";
+import {_} from 'lodash'
+
 const defaultLimit = 25
 
 const areDifferents = function (coll1, coll2) {
@@ -29,49 +29,62 @@ Template.atTable.onCreated(function () {
     this.data.showingMore = new ReactiveVar(false)
     this.data.id = autoTable.id
     this.link = autoTable.link
-    this.data.settings = deepObjectExtend(this.data.settings || {}, autoTable.settings)
-    const userId = typeof Meteor.userId === "function" ? Meteor.userId() : ''
-    this.data.sessionName = `${this.id}${userId}`
-    this.data.filters = new PersistentReactiveVar('filters' + this.sessionName, {})
+    this.data.settings = _.defaultsDeep(_.clone(this.data.settings) || {}, autoTable.settings)
+    const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
+    this.data.sessionName = `${autoTable.id}${userId}`
+
+    this.data.filters = new PersistentReactiveVar('filters' + this.data.sessionName, {})
     this.data.collection = this.data.collection || autoTable.collection
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
-    this.data.columns = new PersistentReactiveVar('columns' + this.sessionName, this.data.columns || autoTable.columns)
-    let storedColumns = _.map(this.data.columns.get(), (val)=>_.pick(val, 'key', 'label', 'operators'))
-    let newColumns = _.map(autoTable.columns, (val)=>_.pick(val, 'key', 'label', 'operators'))
+    this.data.columns = new PersistentReactiveVar('columns' + this.data.sessionName, this.data.columns || autoTable.columns)
+
+    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'operators'))
+    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
         this.data.columns.set(autoTable.columns)
     }
+    this.data.customQuery = this.data.customQuery || {}
     this.limit = parseInt(this.data.limit || defaultLimit)
     this.data.limit = new ReactiveVar(this.limit)
-    this.data.limit = new ReactiveVar(this.limit)
-    this.query = autoTable.query
+    this.query = new ReactiveVar({})
+    this.autorun(() => {
+        this.query.set(_.defaultsDeep(_.clone(autoTable.query), this.data.customQuery || {}))
+    })
+    this.filters = new ReactiveVar({})
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
-    this.autorun(()=> {
-       const filters=createFilter(this.data.columns.get(),autoTable.schema)
-        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), filters, this.data.sort.get(), {
-            onReady: ()=>this.data.showingMore.set(false)
+    this.autorun(() => {
+        const filters = autoTable.schema ? createFilter(this.data.columns.get(), autoTable.schema) : {}
+        console.log('filters',filters)
+        console.log('this.query.get()',this.query.get())
+        //const query=_.clone(this.query.get())
+        const queryToSend = _.defaultsDeep(_.clone(this.query.get()), filters)
+        console.log(filters)
+        console.log('autorun queryToSend',queryToSend)
+        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), queryToSend, this.data.sort.get(), {
+            onReady: () => this.data.showingMore.set(false)
         })
     })
+
 });
-function createFilter(columns,schema){
+export const createFilter=function (columns, schema) {
     //columns has all information to create the filters
     //but has to be cleans (strings to dates for eg)
     // and has to be formated to selctor mongo
-    const cleaned={}
-    for (const column of columns){
-        if (column.filter){
-            cleaned[column.key]=column.filter
+    const cleaned = {}
+    for (const column of columns) {
+        if (column.filter) {
+            cleaned[column.key] = column.filter
         }
     }
     schema.clean(cleaned)
-    const filters={}
+    const filters = {}
     for (let column of columns) {
-        const selector={}
-        const val =cleaned[column.key]
+        const selector = {}
+        const val = cleaned[column.key]
         const operator = column.operator
-        if (val !== '' && val !== null && val!==undefined) {
+        if (val !== '' && val !== null && val !== undefined) {
             selector[operator] = val
             if (operator == '$regex') selector['$options'] = 'gi'
             filters[column.key] = selector
@@ -82,11 +95,11 @@ function createFilter(columns,schema){
 Template.atTable.onRendered(function () {
     let first = true
     if (this.data.settings.options.columnsSort) {
-        this.autorun(()=> {
+        this.autorun(() => {
             if (this.subscriptionsReady() && first) {
                 first = false
                 let columns = this.data.columns.get()
-                Meteor.setTimeout(()=> {
+                Meteor.setTimeout(() => {
                     const instance = this
                     this.$('.sortable').sortable({
                         cursor: 'ew-resize',
@@ -115,7 +128,6 @@ Template.atTable.onRendered(function () {
 })
 
 Template.atTable.onDestroyed(function () {
-    //add your statement here
 });
 
 
@@ -128,14 +140,14 @@ Template.atTable.helpers({
                 return memo + Number(!!field.invisible && !!field.filter)
             }, 0) > 0
     },
-    filtered: ()=>!!_.isEmpty(Template.instance().data.filters.get()),
-    atts: (field)=> {
+    filtered: () => !!_.isEmpty(Template.instance().data.filters.get()),
+    atts: (field) => {
         const instance = Template.instance();
         let columns = instance.data.columns.get()
         const total = columns.length
-        const invisible = _.where(columns, {invisible: true}).length;
+        const invisible = _.filter(columns, {invisible: true}).length;
         const atts = {}
-        _.forEach(columns, (val)=> {
+        _.forEach(columns, (val) => {
             if (val.key == field.key) {
                 if (total - invisible == 1 && !field.invisible) atts.disabled = true
                 if (!field.invisible) atts.checked = true
@@ -145,49 +157,51 @@ Template.atTable.helpers({
         return atts
         //instance.columns.set(columns)
     },
-    showingMore: ()=>Template.instance().data.showingMore.get(),
-    settings: ()=>Template.instance().data.settings,
+    showingMore: () => Template.instance().data.showingMore.get(),
+    settings: () => Template.instance().data.settings,
     valueOf: function (path, obj) {
         return path.split('.').reduce(function (prev, curr) {
             return prev ? prev[curr] : undefined
         }, obj || self)
     },
-    columns: ()=> Template.instance().data.columns.get(),
-    rows: ()=> {
+    columns: () => Template.instance().data.columns.get(),
+    rows: () => {
         const instance = Template.instance()
-        let query = instance.query
-        if (!_.isEmpty(query)) {
-            query = {$and: [instance.data.filters.get(), query]}
-        }
+        let query = instance.query.get()
+        const cursor = instance.data.collection.find(query, {
+            sort: instance.data.sort.get(),
+            limit: instance.data.limit.get(),
+        })
+
         return instance.data.collection.find(query, {
             sort: instance.data.sort.get(),
             limit: instance.data.limit.get(),
         })
     },
-    showing: ()=> {
-        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter')
-        const limit = Template.instance().data.limit.get()
+    showing: () => {
+        const instance = Template.instance()
+        const limit = instance.data.limit.get()
+        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id)
         return limit < total ? limit : total
     },
     total: function () {
-        if (Template.instance().data.settings.options.showing) {
-            return Package['tmeasday:publish-counts'].Counts.get('atCounter')
+        const instance = Template.instance();
+        if (instance.data.settings.options.showing) {
+            return Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id)
         }
 
     }
     ,
     showMore: function () {
         const instance = Template.instance();
-        let query = instance.query
-        if (!_.isEmpty(query)) {
-            query = {$and: [instance.data.filters.get(), query]}
-        }
+        let query = instance.query.get()
+
         if (instance.data.settings.options.showing) {
             return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),
                 limit: instance.data.limit.get(),
                 transform: instance.data.transform
-            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter'))
+            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id))
         } else {
             return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),
@@ -221,7 +235,7 @@ Template.atTable.events({
         const key = $input.val()
         //const number = $column.index('table thead th[key]')
         const invisible = !$input.prop('checked')
-        columns = _.map(columns, (field)=> {
+        columns = _.map(columns, (field) => {
             if (field.key == $input.val()) {
                 field.invisible = invisible
             }

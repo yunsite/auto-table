@@ -17,3 +17,6 @@ Package.onUse(function (api) {
     api.mainModule('auto-table.js');
 });
 
+Npm.depends({
+    'lodash':'4.17.2'
+})

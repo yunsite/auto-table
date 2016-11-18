@@ -2,6 +2,7 @@ import "./filter.html"
 import {AutoTable} from "./auto-table"
 import {PersistentReactiveVar} from "meteor/cesarve:persistent-reactive-var"
 import {AutoForm} from "meteor/aldeed:autoform"
+import {_} from 'lodash'
 /*
  const key=Template.instance().data.field.key
  let filters=Template.instance().filters.get()
@@ -19,8 +20,8 @@ Template.atFilter.helpers({
         return Array.isArray(this.operators) && this.operators.length > 1
     },
     selected(){
-        const  selected=_.findWhere(this.operators, {operator: this.operator})
-        console.log('****______-----...>>>selected',selected)
+        console.log('****______-----...>>>selected',this,selected)
+        const  selected=_.find(this.operators, {operator: this.operator})
         return selected
     },
 
@@ -42,21 +43,20 @@ Template.atFilter.events({
 });
 formData1 = ''
 Template.atFilter.onCreated(function () {
-    this.filters = new PersistentReactiveVar('filters' + this.data.id, {})
     const parentData = Template.parentData()
     const self = this
-    //this.settings=parentData.settings
-    console.log(' this.data.settings', this.settings)
     AutoForm.addHooks(
         this.data.id,
         {
 
             onSubmit: function (doc, modifier, currentDoc) {
+                console.log('onSubmit',doc)
                 const formData = new FormData($(this.event.currentTarget).get(0))
                 let columns = parentData.columns.get()
                 data = {}
                 for (let column of columns) {
                     let val =formData.get(column.key)
+                    console.log('******',column,val)
                     if (Array.isArray(doc[column.key])) val= doc[column.key]
                     column.operator = formData.get(column.key + '_operator')
                     if (val !== '' && val !== null) {
@@ -65,6 +65,7 @@ Template.atFilter.onCreated(function () {
                         delete column.filter
                     }
                 }
+                console.log('************',columns)
                 parentData.columns.set(columns)
                 return false
             }

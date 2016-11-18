@@ -30,10 +30,14 @@
                 <tr class="sortable">
                     {{#each column in columns}}
                         <th id="{{column.key}}" style="{{#if column.invisible}}display: none{{/if}}">
-                            <a href="#"
-
-                               data-sort="{{column.key}}"
-                               data-direction="1">{{column.label}}</a>
+                            {{#if settings.options.columnsOrder}}
+                                <a href="#"
+                                   data-sort="{{column.key}}"
+                                   data-direction="1">{{column.label}}
+                                </a>
+                            {{else}}
+                                {{column.label}}
+                            {{/if}}
                             {{{sort column.key}}}
                         </th>
                     {{/each}}
@@ -44,13 +48,28 @@
                 </thead>
                 <tbody>
                 {{#transition in=settings.klass.transitionIn out=settings.klass.transitionOut}}
-                    {{#each row in rows}}
-                        <a class="tr {{settings.klass.link}}" href="{{link row}}" >
+                    {{#each  rows}}
+                        <tr>
                             {{#each column in columns}}
-                                <td  style="{{#if column.invisible}}display: none{{/if}}">{{valueOf
-                                        column.key row}} </td>
+                                <a class="td {{../settings.klass.link}}" href="{{link .}}"
+                                   style="{{#if column.invisible}}display: none{{/if}}">
+                                    {{valueOf column.key .}}
+                                </a>
                             {{/each}}
-                        </a>
+                        </tr>
+                    {{else}}
+                        {{#if Template.subscriptionsReady }}
+                            <tr class="{{settings.klass.noRecordsWrapper}}">
+                                <td class="{{settings.klass.noRecords}}" colspan="{{columns.length}}">
+                                    {{#if filtered}}
+                                        {{{settings.msg.noRecordsCriteria}}}
+                                    {{else}}
+                                        {{{settings.msg.noRecords}}}
+                                    {{/if}}
+
+                                </td>
+                            </tr>
+                        {{/if}}
                     {{/each}}
                 {{/transition}}
                 </tbody>
@@ -69,24 +88,11 @@
         {{/if}}
         <br>
         {{#unless rows.count}}
-            {{#if Template.subscriptionsReady }}
-                <div class="{{settings.klass.noRecordsWrapper}}">
-                    <div class="{{settings.klass.noRecordsWrapper}}">
-                        {{#if filtered}}
-                            {{{settings.msg.noRecordsCriteria}}}
-                        {{else}}
-                            {{{settings.msg.noRecords}}}
-                        {{/if}}
-
-                    </div>
+            {{#unless Template.subscriptionsReady }}
+                <div class="center-loading">
+                    {{> Template.dynamic template=settings.options.loadingTemplate}}
                 </div>
-            {{else}}
-                {{#unless Template.subscriptionsReady }}
-                    <div class="center-loading">
-                        {{> Template.dynamic template=settings.options.loadingTemplate}}
-                    </div>
-                {{/unless}}
-            {{/if}}
+            {{/unless}}
         {{else}}
             {{>atShowing settings=settings total=total showing=showing}}
         {{/unless}}

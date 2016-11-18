@@ -1,15 +1,8 @@
 /**
  * Created by cesar on 9/11/16.
  */
-import {_} from 'meteor/underscore'
-export const deepObjectExtend = function (target, source) {
-    for (var prop in source)
-        if (prop in target)
-            deepObjectExtend(target[prop], source[prop]);
-        else
-            target[prop] = source[prop];
-    return target;
-}
+import {_} from 'lodash'
+
 
 let SimpleSchema = {}
 
@@ -36,7 +29,7 @@ export class AutoTable {
         this.query = query
         this.link = link
         this.publish = publish
-        const settingsDefaults = {
+        const defaults = {
             options: {
                 loadingTemplate: 'atLoading',
                 columnsSort: false,
@@ -78,11 +71,11 @@ export class AutoTable {
                 showMore: 'btn btn-block btn-default',
                 showingWrapper: 'row',
                 showing: 'col-xs-12 text-right small',
-                noRecordsWrapper: 'row text-center',
-                noRecords: 'col-xs-12 col-sm-12 col-md-12 col-lg-12'
+                noRecordsWrapper: ' text-center noRecordsWrapper ',
+                noRecords: 'noRecords'
             },
         }
-        this.settings = deepObjectExtend(settings, settingsDefaults)
+            this.settings = _.defaultsDeep(_.clone(settings), defaults)
         if (!schema && this.settings.options.filters) throw new Meteor.Error('schema parameter is required when filter option is on')
         columns = _.map(columns, (column) => {
             if (!column.label && this.schema) {
@@ -121,7 +114,7 @@ export class AutoTable {
     }
 }
 AutoTable.getInstance = function (id) {
-    return _.findWhere(this.instances, {id})
+    return _.find(this.instances, {id})
 }
 AutoTable.pickFromSchema = function (schema, ...arg) {
     if (Array.isArray(arg[0])) arg = arg[0]

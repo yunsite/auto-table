@@ -49,7 +49,7 @@ const autoTable= AutoTable({options})
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
 |  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
 |  publishExtraFields | optional  |  Array | for publish extra fields|
-|  link | optional  |  Function | receive as parameter all the doc ans has to return a link for this row|
+|  link | optional  |  Function | receive as parameter the doc and the colunm key ehere click was, and have to return the href of the link, leave in blank for no link, you can handle the events (see below)|
 
 
 
@@ -153,13 +153,27 @@ const autoTable= AutoTable({options})
 ```Blaze
   {{>atTable at=myCollectionAutoTableInstance  query=query settings=settings}}
 ```
+
+
+### Events
+
+You can control the events in cells from your parent template, there the context (this) is the doc
+
+```
+Template.parentTempalte.events({
+    'click .td'(e, instance){
+        console.log(this)
+    },
+});
+
+```
 #### Argumens
 
 |  name | req/opt  | type  | description  |  
 |---|---|---|---|
 |  at | required  | AutoTable instance  | The same used to configure the table (see above)  |
-| customFilter | optional | Object | Mongo selector to hook into filter the docs (no cares about publication for this use query in AutoTable Arguments)
 |  settings | optional  | Object  | override settings values (see above)  | 
+|  customQuery | optional  | Object  | mongo selector, for filter doc in client side (if fields in selector are no showing then you have to included in publishExtraFields) | 
 
 ## Know Issues 
 
