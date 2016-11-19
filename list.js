@@ -28,6 +28,7 @@ Template.atTable.onCreated(function () {
     const autoTable = this.data.at
     this.data.showingMore = new ReactiveVar(false)
     this.data.id = autoTable.id
+    this.autoTable = autoTable
     this.link = autoTable.link
     this.data.settings = _.defaultsDeep(_.clone(this.data.settings) || {}, autoTable.settings)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
@@ -38,8 +39,8 @@ Template.atTable.onCreated(function () {
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.data.sessionName, this.data.columns || autoTable.columns)
 
-    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'operators'))
-    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operators'))
+    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'operator', 'operators', 'render'))
+    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operator', 'operators', 'render'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
@@ -56,19 +57,19 @@ Template.atTable.onCreated(function () {
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(() => {
         const filters = autoTable.schema ? createFilter(this.data.columns.get(), autoTable.schema) : {}
-        console.log('filters',filters)
-        console.log('this.query.get()',this.query.get())
+        console.log('filters', filters)
+        console.log('this.query.get()', this.query.get())
         //const query=_.clone(this.query.get())
         const queryToSend = _.defaultsDeep(_.clone(this.query.get()), filters)
         console.log(filters)
-        console.log('autorun queryToSend',queryToSend)
+        console.log('autorun queryToSend', queryToSend)
         this.subscribe('atPubSub', this.data.id, this.data.limit.get(), queryToSend, this.data.sort.get(), {
             onReady: () => this.data.showingMore.set(false)
         })
     })
 
 });
-export const createFilter=function (columns, schema) {
+export const createFilter = function (columns, schema) {
     //columns has all information to create the filters
     //but has to be cleans (strings to dates for eg)
     // and has to be formated to selctor mongo
@@ -159,10 +160,21 @@ Template.atTable.helpers({
     },
     showingMore: () => Template.instance().data.showingMore.get(),
     settings: () => Template.instance().data.settings,
-    valueOf: function (path, obj) {
-        return path.split('.').reduce(function (prev, curr) {
+    isTemplate: function (render) {
+        return (render == 'string')
+    },
+    render: function (obj, column) {
+        const render=_.find(Template.instance().autoTable.columns,{key: column.key}).render
+        console.log('column.render',column,typeof render == 'function')
+        const path = column.key
+        const val = path.split('.').reduce(function (prev, curr) {
             return prev ? prev[curr] : undefined
         }, obj || self)
+        if (typeof render == 'function') {
+            return render.call(obj, val, path)
+        }
+        return val
+
     },
     columns: () => Template.instance().data.columns.get(),
     rows: () => {
@@ -181,13 +193,13 @@ Template.atTable.helpers({
     showing: () => {
         const instance = Template.instance()
         const limit = instance.data.limit.get()
-        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id)
+        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id)
         return limit < total ? limit : total
     },
     total: function () {
         const instance = Template.instance();
         if (instance.data.settings.options.showing) {
-            return Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id)
+            return Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id)
         }
 
     }
@@ -201,7 +213,7 @@ Template.atTable.helpers({
                 sort: instance.data.sort.get(),
                 limit: instance.data.limit.get(),
                 transform: instance.data.transform
-            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter'+instance.data.id))
+            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id))
         } else {
             return (instance.data.collection.find(query, {
                 sort: instance.data.sort.get(),

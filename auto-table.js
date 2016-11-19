@@ -99,6 +99,7 @@ export class AutoTable {
                 }
                 return true
             })),
+            render: Match.Optional(Match.OneOf(Function,Object,String)),
             operators: Match.Optional([{
                 label: String,
                 shortLabel: String,

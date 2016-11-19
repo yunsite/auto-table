@@ -53,7 +53,11 @@
                             {{#each column in columns}}
                                 <a class="td {{../settings.klass.link}}" href="{{link .}}"
                                    style="{{#if column.invisible}}display: none{{/if}}">
-                                    {{valueOf column.key .}}
+                                    {{#if isTemplate column.render}}
+                                        {{>Template.dinamyc template=colunm.render}}
+                                    {{else}}
+                                        {{render . column}}
+                                    {{/if}}
                                 </a>
                             {{/each}}
                         </tr>

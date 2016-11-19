@@ -20,7 +20,6 @@ Template.atFilter.helpers({
         return Array.isArray(this.operators) && this.operators.length > 1
     },
     selected(){
-        console.log('****______-----...>>>selected',this,selected)
         const  selected=_.find(this.operators, {operator: this.operator})
         return selected
     },
