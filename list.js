@@ -165,7 +165,6 @@ Template.atTable.helpers({
     },
     render: function (obj, column) {
         const render=_.find(Template.instance().autoTable.columns,{key: column.key}).render
-        console.log('column.render',column,typeof render == 'function')
         const path = column.key
         const val = path.split('.').reduce(function (prev, curr) {
             return prev ? prev[curr] : undefined

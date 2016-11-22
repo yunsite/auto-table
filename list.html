@@ -30,7 +30,7 @@
                 <tr class="sortable">
                     {{#each column in columns}}
                         <th id="{{column.key}}" style="{{#if column.invisible}}display: none{{/if}}">
-                            {{#if settings.options.columnsOrder}}
+                            {{#if settings.options.columnsSort}}
                                 <a href="#"
                                    data-sort="{{column.key}}"
                                    data-direction="1">{{column.label}}
