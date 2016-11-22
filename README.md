@@ -177,7 +177,12 @@ Template.parentTempalte.events({
 
 ## Know Issues 
 
-Depending on unknown package webtempest:animate
+### Empty list:
+* Be sure the code where you declare AutoTable instance is share (sever,client)
+* If you are using query option, be sure all field in query are in columns or in publishExtraFields option.
+
+
+### Depending on unknown package webtempest:animate
 ```sh
 meteor add webtempest:animate
 meteor remove webtempest:animate //if you want to removed (the packed is installed anyway)

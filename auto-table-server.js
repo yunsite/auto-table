@@ -3,7 +3,6 @@ import {AutoTable} from "./auto-table"
 import {_} from 'lodash'
 
 
-
 Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     let time = new Date().getTime()
     check(id, String)
@@ -21,21 +20,22 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         return field.split('.')[0]
     })
     fields = _.zipObject(fields, _.fill(Array(fields.length), true))
-    console.log('fields',fields)
+    console.log('fields', fields)
     if (!_.isEmpty(autoTable.query)) {
-        query = _.defaultsDeep(_.clone(autoTable.query),query)
+        query = _.defaultsDeep(_.clone(autoTable.query), query)
     }
     if (!autoTable.publish.call(this)) {
         return this.ready()
     }
     if (autoTable.settings.options.showing) {
+
         let Counts = Package['tmeasday:publish-counts']
-        if (!Counts) throw new Error
+        if (!Counts) throw new Meteor.Error('Please install tmeasday:publish-counts pacage for use showing option')
         Counts = Counts.Counts
-        Counts.publish(this, 'atCounter'+id , autoTable.collection.find(query, {limit, sort}), {noReady: true});
+        Counts.publish(this, 'atCounter' + id, autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
     const res = autoTable.collection.find(query, {fields, sort, limit})
-    console.log(query)
+    console.log(query,res.count())
     console.log('atPubSub ' + id + ' total time ---->', new Date().getTime() - time)
     return res
 })
