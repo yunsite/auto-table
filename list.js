@@ -39,12 +39,14 @@ Template.atTable.onCreated(function () {
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.data.sessionName, this.data.columns || autoTable.columns)
 
-    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'operator', 'operators', 'render'))
-    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operator', 'operators', 'render'))
+    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label',  'operators'))
+    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
+        console.log('areDifferents')
         this.data.columns.set(autoTable.columns)
+        console.log('areDifferents')
     }
     this.data.customQuery = this.data.customQuery || {}
     this.limit = parseInt(this.data.limit || defaultLimit)

@@ -60,6 +60,7 @@ const autoTable= AutoTable({options})
     id: 'emails.address.0' // Required {String} Key og mongo field, (eg 'firstNamep' or 'emails.0.address')
     invisible: false, // Optional {Boolean} Initially hidden, have to be option.columnsDisplay to true for work 
     operator: '$regex', // Optional {String} required if option filter is enable
+    render: function(val,path){return val}, // a function for render de value take 2 params, the actual value, and the path in the doc (eg emails.address.0), inside the function the context is doc.
     operators:  [  // Optional Array works for option filter
                    // the value of fields.operator (above) has to be present in fields.operators.operator (below) and it will be preselected
                    {  

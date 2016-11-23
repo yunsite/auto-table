@@ -117,18 +117,3 @@ export class AutoTable {
 AutoTable.getInstance = function (id) {
     return _.find(this.instances, {id})
 }
-AutoTable.pickFromSchema = function (schema, ...arg) {
-    if (Array.isArray(arg[0])) arg = arg[0]
-    let schemas = schema._schema
-    schemas = _.pick(schemas, arg)
-    for (let key in schemas) {
-        schemas[key].optional = true
-        if (schemas[key].autoform && schemas[key].autoform.afFormGroup)
-            delete schemas[key].autoform.afFormGroup
-    }
-    if (Package['aldeed:simple-schema']) {
-        SimpleSchema = Package['aldeed:simple-schema'].SimpleSchema
-        // this.schema = this.schema.pick(_.pluck(columns,'key'));
-    }
-    return new SimpleSchema(schemas)
-}

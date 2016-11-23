@@ -20,10 +20,9 @@ Template.atFilter.helpers({
         return Array.isArray(this.operators) && this.operators.length > 1
     },
     selected(){
-        const  selected=_.find(this.operators, {operator: this.operator})
+        const selected = _.find(this.operators, {operator: this.operator})
         return selected
     },
-
 
 
 });
@@ -36,7 +35,7 @@ Template.atFilter.events({
         const $input = $parent.find('input[type="hidden"].operator')
         const $btn = $parent.find('button')
         $input.val(this.operator)
-        console.log($parent,$form,$input,$btn,this.operator)
+        console.log($parent, $form, $input, $btn, this.operator)
         $form.submit()
     }
 });
@@ -49,14 +48,15 @@ Template.atFilter.onCreated(function () {
         {
 
             onSubmit: function (doc, modifier, currentDoc) {
-                console.log('onSubmit',doc)
+                console.log('onSubmit', doc,modifier, currentDoc,parentData)
+                console.log(doc)
                 const formData = new FormData($(this.event.currentTarget).get(0))
                 let columns = parentData.columns.get()
                 data = {}
                 for (let column of columns) {
-                    let val =formData.get(column.key)
-                    console.log('******',column,val)
-                    if (Array.isArray(doc[column.key])) val= doc[column.key]
+                    let val = formData.get(column.key)
+                    if (Array.isArray(doc[column.key])) val = doc[column.key]
+                    //if (typeof doc[column.key] == "number") val = doc[column.key]
                     column.operator = formData.get(column.key + '_operator')
                     if (val !== '' && val !== null) {
                         column.filter = val
@@ -64,8 +64,10 @@ Template.atFilter.onCreated(function () {
                         delete column.filter
                     }
                 }
-                console.log('************',columns)
+                console.log('submu----------------')
                 parentData.columns.set(columns)
+                console.log('submu----------------')
+
                 return false
             }
         }
