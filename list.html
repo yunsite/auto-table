@@ -56,7 +56,7 @@
                                     {{#if isTemplate column.render}}
                                         {{>Template.dinamyc template=colunm.render}}
                                     {{else}}
-                                        {{render . column}}
+                                        {{{render . column}}}
                                     {{/if}}
                                 </a>
                             {{/each}}
@@ -90,7 +90,6 @@
                 {{/if}}
             {{/if}}
         {{/if}}
-        <br>
         {{#unless rows.count}}
             {{#unless Template.subscriptionsReady }}
                 <div class="center-loading">

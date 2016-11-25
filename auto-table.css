@@ -1217,9 +1217,7 @@ th {
     max-width: 100%;
     margin-bottom: 20px;
 }
-.atTable .table-responsive{
-    min-height: 300px;
-}
+
 .atTable a.td{
     display: table-cell;
 }
@@ -1396,4 +1394,8 @@ table th[class*="col-"] {
 .table-hover > tbody > tr:hover > .danger,
 .table-hover > tbody > tr.danger:hover > th {
     background-color: #ebcccc;
+}
+
+.atTable .table {
+    margin-bottom: 0%;
 }
