@@ -54,14 +54,11 @@ Template.atFilter.onCreated(function () {
                 data = {}
                 const $set = modifier.$set || {}
                 for (let column of columns) {
-                    //let val = formData.get(column.key)
                     const val = $set[column.key]
-                    //if (Array.isArray($set[column.key])) val = $set[column.key]
-                    //if (typeof $set[column.key] == "number") val = $set[column.key]
-                    console.log('onSubmit column.key',column.key,doc[column.key])
 
                     column.operator = formData.get(column.key + '_operator')
                     if (val !== '' && val !== null && val !== undefined) {
+                        console.log('onSubmit column.key',column.key,doc[column.key])
                         column.filter = val
                     } else {
                         delete column.filter

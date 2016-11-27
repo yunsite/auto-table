@@ -77,7 +77,7 @@ export const createFilter = function (columns, schema) {
     // and has to be formated to selctor mongo
     const cleaned = {}
     for (const column of columns) {
-        if (column.filter) {
+        if (column.filter !== '' && column.filter !== null && column.filter !== undefined){
             cleaned[column.key] = column.filter
         }
     }
@@ -86,6 +86,7 @@ export const createFilter = function (columns, schema) {
     for (let column of columns) {
         const selector = {}
         const val = cleaned[column.key]
+        console.log()
         const operator = column.operator
         if (val !== '' && val !== null && val !== undefined) {
             selector[operator] = val
