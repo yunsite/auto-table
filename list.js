@@ -44,9 +44,9 @@ Template.atTable.onCreated(function () {
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
-        console.log('areDifferents')
+        //console.log('areDifferents')
         this.data.columns.set(autoTable.columns)
-        console.log('areDifferents')
+        //console.log('areDifferents')
     }
     this.data.customQuery = this.data.customQuery || {}
     this.limit = parseInt(this.data.limit || defaultLimit)
@@ -59,11 +59,11 @@ Template.atTable.onCreated(function () {
     this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(() => {
         const filters = autoTable.schema ? createFilter(this.data.columns.get(), autoTable.schema) : {}
-        console.log('filters', filters)
-        console.log('this.query.get()', this.query.get())
+        //console.log('filters', filters)
+        //console.log('this.query.get()', this.query.get())
         //const query=_.clone(this.query.get())
         const queryToSend = _.defaultsDeep(_.clone(this.query.get()), filters)
-        console.log(filters)
+        //console.log(filters)
         console.log('autorun queryToSend', queryToSend)
         this.subscribe('atPubSub', this.data.id, this.data.limit.get(), queryToSend, this.data.sort.get(), {
             onReady: () => this.data.showingMore.set(false)
@@ -86,7 +86,7 @@ export const createFilter = function (columns, schema) {
     for (let column of columns) {
         const selector = {}
         const val = cleaned[column.key]
-        console.log()
+
         const operator = column.operator
         if (val !== '' && val !== null && val !== undefined) {
             selector[operator] = val
@@ -182,7 +182,7 @@ Template.atTable.helpers({
     rows: () => {
         const instance = Template.instance()
         let query = instance.query.get()
-        console.log('***',query,'***')
+
         const cursor = instance.data.collection.find(query, {
             sort: instance.data.sort.get(),
             limit: instance.data.limit.get(),

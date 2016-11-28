@@ -20,7 +20,6 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         return field.split('.')[0]
     })
     fields = _.zipObject(fields, _.fill(Array(fields.length), true))
-    console.log('fields', fields)
     if (!_.isEmpty(autoTable.query)) {
         query = _.defaultsDeep(_.clone(autoTable.query), query)
     }
@@ -35,7 +34,6 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         Counts.publish(this, 'atCounter' + id, autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
     const res = autoTable.collection.find(query, {fields, sort, limit})
-    console.log(query,res.count())
-    console.log('atPubSub ' + id + ' total time ---->', new Date().getTime() - time)
+    //console.log('atPubSub ' + id + ' total time ---->', new Date().getTime() - time)
     return res
 })
