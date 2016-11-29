@@ -49,7 +49,7 @@ const autoTable= AutoTable({options})
 |  settings | optional  |  Object |  for general configuration  see [setting object format](settingObject)|  
 |  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
 |  publishExtraFields | optional  |  Array | for publish extra fields|
-|  link | optional  |  Function | receive as parameter the doc and the colunm key ehere click was, and have to return the href of the link, leave in blank for no link, you can handle the events (see below)|
+|  link | optional  |  Function | receive as parameter the doc and the colunm key wehere click was, and have to return the href of the link, leave in blank for no link, you can handle the events (see below)|
 
 
 

@@ -4,6 +4,7 @@
         {{#each columns}}
 
             <td style="{{#if invisible}}display: none{{/if}}">
+                {{#if columnIsInFilter}}
                 <div class="{{../../../settings.klass.filterWrapper}} {{#if afFieldIsInvalid name=key }}{{../../../settings.klass.filterWrapperHasError}}{{/if}}">
                     <div class=" {{#if multipleOperators}}input-group {{/if}}">
                         {{#if multipleOperators}}
@@ -26,6 +27,7 @@
                         <span class="help-block">{{afFieldMessage name=key }}</span>
                     {{/if}}
                 </div>
+                {{/if}}
             </td>
         {{/each}}
 

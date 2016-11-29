@@ -23,6 +23,9 @@ Template.atFilter.helpers({
         const selected = _.find(this.operators, {operator: this.operator})
         return selected
     },
+    columnIsInFilter(){
+        return !!Template.instance().autoTable.schema.schema(this.key)
+    }
 
 
 });
@@ -42,6 +45,7 @@ Template.atFilter.events({
 formData1 = ''
 Template.atFilter.onCreated(function () {
     const parentData = Template.parentData()
+    this.autoTable=AutoTable.getInstance(parentData.id)
     const self = this
     AutoForm.addHooks(
         this.data.id,
