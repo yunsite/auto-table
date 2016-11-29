@@ -39,8 +39,8 @@ Template.atTable.onCreated(function () {
     if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
     this.data.columns = new PersistentReactiveVar('columns' + this.data.sessionName, this.data.columns || autoTable.columns)
 
-    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label',  'operator', 'operators'))
-    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'operator', 'operators'))
+    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
+    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template',  'operator', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
@@ -136,8 +136,8 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
-    link(row){
-        return Template.instance().link(row)
+    link(row,key){
+        return Template.instance().link(row,key)
     },
     hiddenFilter(){
         return _.reduce(Template.instance().data.columns.get(), function (memo, field) {
@@ -163,8 +163,9 @@ Template.atTable.helpers({
     },
     showingMore: () => Template.instance().data.showingMore.get(),
     settings: () => Template.instance().data.settings,
-    isTemplate: function (render) {
-        return (render == 'string')
+    isTemplate: function (template) {
+        console.log('isTemplate template',template)
+        return (typeof template == 'string')
     },
     render: function (obj, column) {
         const render=_.find(Template.instance().autoTable.columns,{key: column.key}).render
@@ -174,6 +175,9 @@ Template.atTable.helpers({
         }, obj || self)
         if (typeof render == 'function') {
             return render.call(obj, val, path)
+        }
+        if (typeof render == 'string') {
+            return render
         }
         return val
 

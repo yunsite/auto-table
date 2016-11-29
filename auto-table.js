@@ -91,7 +91,7 @@ export class AutoTable {
         check(columns, [{
             label: Match.Maybe(String),
             key: Match.Optional(String),
-            template: Match.Optional(Object),
+            template: Match.Optional(String),
             invisible: Match.Maybe(Boolean),
             operator: Match.Optional(Match.Where((operator) => {
                 if (this.settings.options.filters) {

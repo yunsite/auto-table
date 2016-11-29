@@ -51,10 +51,10 @@
                     {{#each  rows}}
                         <tr>
                             {{#each column in columns}}
-                                <a class="td {{../settings.klass.link}}" href="{{link .}}"
+                                <a class="td {{../settings.klass.link}}" href="{{link . column.key}}"
                                    style="{{#if column.invisible}}display: none{{/if}}">
-                                    {{#if isTemplate column.render}}
-                                        {{>Template.dinamyc template=colunm.render}}
+                                    {{#if isTemplate column.template}}
+                                        {{> Template.dynamic template=column.template}}
                                     {{else}}
                                         {{{render . column}}}
                                     {{/if}}
