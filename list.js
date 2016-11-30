@@ -44,9 +44,7 @@ Template.atTable.onCreated(function () {
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
-        //console.log('areDifferents')
         this.data.columns.set(autoTable.columns)
-        //console.log('areDifferents')
     }
     this.data.customQuery = this.data.customQuery || {}
     this.limit = parseInt(this.data.limit || defaultLimit)
@@ -164,7 +162,6 @@ Template.atTable.helpers({
     showingMore: () => Template.instance().data.showingMore.get(),
     settings: () => Template.instance().data.settings,
     isTemplate: function (template) {
-        console.log('isTemplate template',template)
         return (typeof template == 'string')
     },
     render: function (obj, column) {
