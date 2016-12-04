@@ -33,7 +33,10 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         Counts = Counts.Counts
         Counts.publish(this, 'atCounter' + id, autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
-    const res = autoTable.collection.find(query, {fields, sort, limit})
-    //console.log('atPubSub ' + id + ' total time ---->', new Date().getTime() - time)
-    return res
+    const cursor=autoTable.collection.find(query, {fields, sort, limit})
+    let publications = [cursor]
+    if (typeof autoTable.publishExtraCollection == 'function'){
+        publications=publications.concat(autoTable.publishExtraCollection.call(this,cursor))
+    }
+    return publications
 })

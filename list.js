@@ -44,17 +44,19 @@ Template.atTable.onCreated(function () {
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
+        console.log('*******************************ARE DIFFERENTS*********************************',storedColumns, newColumns,autoTable.columns)
         this.data.columns.set(autoTable.columns)
     }
     this.data.customQuery = this.data.customQuery || {}
     this.limit = parseInt(this.data.limit || defaultLimit)
     this.data.limit = new ReactiveVar(this.limit)
     this.query = new ReactiveVar({})
+
+    this.filters = new ReactiveVar({})
+    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(() => {
         this.query.set(_.defaultsDeep(_.clone(autoTable.query), this.data.customQuery || {}))
     })
-    this.filters = new ReactiveVar({})
-    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
     this.autorun(() => {
         const filters = autoTable.schema ? createFilter(this.data.columns.get(), autoTable.schema) : {}
         //console.log('filters', filters)
@@ -181,8 +183,28 @@ Template.atTable.helpers({
     },
     columns: () => Template.instance().data.columns.get(),
     rows: () => {
+
+
+
+
+
+
         const instance = Template.instance()
-        let query = instance.query.get()
+
+
+
+
+        const filters = instance.autoTable.schema ? createFilter(instance.data.columns.get(), instance.autoTable.schema) : {}
+        //console.log('filters', filters)
+        //console.log('this.query.get()', this.query.get())
+        //const query=_.clone(this.query.get())
+        const queryToSend = _.defaultsDeep(_.clone(instance.query.get()), filters)
+        //console.log(filters)
+        console.log('autorun queryToSend', queryToSend)
+
+
+
+        let query = queryToSend //todo refactor this, probalñy refactor every thing for use only instance.autoTable.
 
         const cursor = instance.data.collection.find(query, {
             sort: instance.data.sort.get(),

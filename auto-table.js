@@ -8,8 +8,9 @@ let SimpleSchema = {}
 
 
 export class AutoTable {
-    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = () => true, link = () => '#', publishExtraFields = []}) {
+    constructor({id, collection, columns, schema, query = {}, settings = {}, publish = () => true, link = () => '#', publishExtraFields = [], publishExtraCollection}) {
         this.publishExtraFields = publishExtraFields
+        this.publishExtraCollection=publishExtraCollection
         if (!id) throw new Meteor.Error('id parameter is required')
         if (!collection) throw new Meteor.Error('collection parameter is required')
 
@@ -82,7 +83,7 @@ export class AutoTable {
                 column.label = this.schema.label(column.key) || ''
             }
             if (!column.operator) {
-                column.operator = '$regex'
+                column.operator = null
             }
             return column
         })
@@ -93,12 +94,7 @@ export class AutoTable {
             key: Match.Optional(String),
             template: Match.Optional(String),
             invisible: Match.Maybe(Boolean),
-            operator: Match.Optional(Match.Where((operator) => {
-                if (this.settings.options.filters) {
-                    check(operator, String)
-                }
-                return true
-            })),
+            operator:  Match.Optional(Match.OneOf(String,null)),
             render: Match.Optional(Match.OneOf(Function,Object,String)),
             operators: Match.Optional([{
                 label: String,
