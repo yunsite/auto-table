@@ -25,48 +25,35 @@ Template.atTable.onCreated(function () {
     //todo set limit from data or settings
     if (!this.data.at) throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
     if (!this.data.at instanceof AutoTable) throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
-    const autoTable = this.data.at
-    this.data.showingMore = new ReactiveVar(false)
-    this.data.id = autoTable.id
-    this.autoTable = autoTable
-    this.link = autoTable.link
-    this.data.settings = _.defaultsDeep(_.clone(this.data.settings) || {}, autoTable.settings)
+    this.autoTable = this.data.at
+    this.showingMore = new ReactiveVar(false)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
-    this.data.sessionName = `${autoTable.id}${userId}`
-
-    this.data.filters = new PersistentReactiveVar('filters' + this.data.sessionName, {})
-    this.data.collection = this.data.collection || autoTable.collection
-    if (!this.data.collection instanceof Mongo.Collection) throw new Meteor.Error(400, 'Missing configuration', 'atList template has to be a Collection parameter')
-    this.data.columns = new PersistentReactiveVar('columns' + this.data.sessionName, this.data.columns || autoTable.columns)
-
-    let storedColumns = _.map(this.data.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
-    let newColumns = _.map(autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template',  'operator', 'operators'))
+    this.sessionName = `${this.autoTable.id}${userId}`
+    this.filters = new PersistentReactiveVar('filters' + this.sessionName, {})
+    this.columns = new PersistentReactiveVar('columns' + this.sessionName, this.autoTable.columns)
+    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
+    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
-        console.log('*******************************ARE DIFFERENTS*********************************',storedColumns, newColumns,autoTable.columns)
-        this.data.columns.set(autoTable.columns)
+        console.log('*******************************ARE DIFFERENTS*********************************', storedColumns, newColumns)
+        this.columns.set(this.autoTable.columns)
     }
-    this.data.customQuery = this.data.customQuery || {}
-    this.limit = parseInt(this.data.limit || defaultLimit)
-    this.data.limit = new ReactiveVar(this.limit)
+    this.limit = ReactiveVar(parseInt(this.data.limit || defaultLimit))
     this.query = new ReactiveVar({})
-
     this.filters = new ReactiveVar({})
-    this.data.sort = new PersistentReactiveVar('sort' + this.data.sessionName, {});
+    this.sort = new PersistentReactiveVar('sort' + this.sessionName, {});
     this.autorun(() => {
-        this.query.set(_.defaultsDeep(_.clone(autoTable.query), this.data.customQuery || {}))
-    })
-    this.autorun(() => {
-        const filters = autoTable.schema ? createFilter(this.data.columns.get(), autoTable.schema) : {}
-        //console.log('filters', filters)
-        //console.log('this.query.get()', this.query.get())
-        //const query=_.clone(this.query.get())
-        const queryToSend = _.defaultsDeep(_.clone(this.query.get()), filters)
-        //console.log(filters)
-        console.log('autorun queryToSend', queryToSend)
-        this.subscribe('atPubSub', this.data.id, this.data.limit.get(), queryToSend, this.data.sort.get(), {
-            onReady: () => this.data.showingMore.set(false)
+        const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
+        const customQuery = typeof this.data.customQuery=="function" ? this.data.customQuery() :  this.data.customQuery || {}
+        const query = this.autoTable.query
+        _.defaultsDeep(filters, customQuery)
+        _.defaultsDeep(filters, query)
+        this.query.set(filters)
+        console.log('*****************************************************************customQuery list autotable',customQuery)
+        //console.log('autorun queryToSend', filters)
+        this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
+            onReady: () => this.showingMore.set(false)
         })
     })
 
@@ -77,7 +64,7 @@ export const createFilter = function (columns, schema) {
     // and has to be formated to selctor mongo
     const cleaned = {}
     for (const column of columns) {
-        if (column.filter !== '' && column.filter !== null && column.filter !== undefined){
+        if (column.filter !== '' && column.filter !== null && column.filter !== undefined) {
             cleaned[column.key] = column.filter
         }
     }
@@ -98,11 +85,11 @@ export const createFilter = function (columns, schema) {
 }
 Template.atTable.onRendered(function () {
     let first = true
-    if (this.data.settings.options.columnsSort) {
+    if (this.autoTable.settings.options.columnsSort) {
         this.autorun(() => {
             if (this.subscriptionsReady() && first) {
                 first = false
-                let columns = this.data.columns.get()
+                let columns = this.columns.get()
                 Meteor.setTimeout(() => {
                     const instance = this
                     this.$('.sortable').sortable({
@@ -120,7 +107,7 @@ Template.atTable.onRendered(function () {
                             columns = _.sortBy(columns, function (field) {
                                 return keys.indexOf(field.key)
                             });
-                            instance.data.columns.set(columns)
+                            instance.columns.set(columns)
                             event.preventDefault()
                         },
                     }).disableSelection()
@@ -136,18 +123,21 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
-    link(row,key){
-        return Template.instance().link(row,key)
+    link(row, key){
+        return Template.instance().autoTable.link(row, key)
     },
     hiddenFilter(){
-        return _.reduce(Template.instance().data.columns.get(), function (memo, field) {
+
+        return _.reduce(Template.instance().columns.get(), function (memo, field) {
                 return memo + Number(!!field.invisible && !!field.filter)
             }, 0) > 0
     },
-    filtered: () => !!_.isEmpty(Template.instance().data.filters.get()),
+    filtered: () => !!_.isEmpty(Template.instance().filters.get()),
     atts: (field) => {
+        if (!Template.instance().columns)
+            return
         const instance = Template.instance();
-        let columns = instance.data.columns.get()
+        let columns = instance.columns.get()
         const total = columns.length
         const invisible = _.filter(columns, {invisible: true}).length;
         const atts = {}
@@ -161,13 +151,15 @@ Template.atTable.helpers({
         return atts
         //instance.columns.set(columns)
     },
-    showingMore: () => Template.instance().data.showingMore.get(),
-    settings: () => Template.instance().data.settings,
+    showingMore: () => Template.instance().showingMore.get(),
+    columnsReactive: () => Template.instance().columns,
+    settings: () => Template.instance().autoTable.settings,
+    id: () => Template.instance().autoTable.id,
     isTemplate: function (template) {
         return (typeof template == 'string')
     },
     render: function (obj, column) {
-        const render=_.find(Template.instance().autoTable.columns,{key: column.key}).render
+        const render = _.find(Template.instance().autoTable.columns, {key: column.key}).render
         const path = column.key
         const val = path.split('.').reduce(function (prev, curr) {
             return prev ? prev[curr] : undefined
@@ -181,51 +173,27 @@ Template.atTable.helpers({
         return val
 
     },
-    columns: () => Template.instance().data.columns.get(),
+    columns: () =>  Template.instance().columns.get(),
     rows: () => {
-
-
-
-
-
-
         const instance = Template.instance()
-
-
-
-
-        const filters = instance.autoTable.schema ? createFilter(instance.data.columns.get(), instance.autoTable.schema) : {}
-        //console.log('filters', filters)
-        //console.log('this.query.get()', this.query.get())
-        //const query=_.clone(this.query.get())
-        const queryToSend = _.defaultsDeep(_.clone(instance.query.get()), filters)
-        //console.log(filters)
-        console.log('autorun queryToSend', queryToSend)
-
-
-
-        let query = queryToSend //todo refactor this, probalñy refactor every thing for use only instance.autoTable.
-
-        const cursor = instance.data.collection.find(query, {
-            sort: instance.data.sort.get(),
-            limit: instance.data.limit.get(),
+        let query = instance.query.get() //
+        const cursor = instance.autoTable.collection.find(query, {
+            sort: instance.sort.get(),
+            limit: instance.limit.get(),
         })
-
-        return instance.data.collection.find(query, {
-            sort: instance.data.sort.get(),
-            limit: instance.data.limit.get(),
-        })
+        //console.log('rows',cursor.fetch())
+        return cursor
     },
     showing: () => {
         const instance = Template.instance()
-        const limit = instance.data.limit.get()
-        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id)
+        const limit = instance.limit.get()
+        const total = Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id)
         return limit < total ? limit : total
     },
     total: function () {
         const instance = Template.instance();
-        if (instance.data.settings.options.showing) {
-            return Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id)
+        if (instance.autoTable.settings.options.showing) {
+            return Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id)
         }
 
     }
@@ -233,33 +201,30 @@ Template.atTable.helpers({
     showMore: function () {
         const instance = Template.instance();
         let query = instance.query.get()
-
-        if (instance.data.settings.options.showing) {
-            return (instance.data.collection.find(query, {
-                sort: instance.data.sort.get(),
-                limit: instance.data.limit.get(),
-                transform: instance.data.transform
-            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.data.id))
+        if (instance.autoTable.settings.options.showing) {
+            return (instance.autoTable.collection.find(query, {
+                sort: instance.sort.get(),
+                limit: instance.limit.get(),
+            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
         } else {
-            return (instance.data.collection.find(query, {
-                sort: instance.data.sort.get(),
-                limit: instance.data.limit.get(),
-                transform: instance.data.transform
-            }).count() === instance.data.limit.get())
+            return (instance.autoTable.collection.find(query, {
+                sort: instance.sort.get(),
+                limit: instance.limit.get(),
+            }).count() === instance.limit.get())
         }
     }
     ,
     sort(sort)
     {
         const instance = Template.instance()
-        const sortObj = instance.data.sort.get()
+        const sortObj = instance.sort.get()
         if (_.isEmpty(sortObj)) return ''
         const sortKey = Object.keys(sortObj)[0];
         if (sort == sortKey) {
             if (sortObj[sortKey] > 0) {
-                return instance.data.settings.msg.sort.asc
+                return instance.autoTable.settings.msg.sort.asc
             } else {
-                return instance.data.settings.msg.sort.desc
+                return instance.autoTable.settings.msg.sort.desc
             }
         }
     }
@@ -282,22 +247,22 @@ Template.atTable.events({
         instance.data.columns.set(columns)
     },
     'click .showMore'(e, instance){
-        instance.data.showingMore.set(true)
-        instance.data.limit.set(instance.data.limit.get() + (instance.limit || defaultLimit))
+        instance.showingMore.set(true)
+        instance.limit.set(instance.limit.get() + (instance.data.limit || defaultLimit))
     },
     'click .sortable'(e, instance) {
         const $target = $(e.target)
         if ($target.get(0).localName == "a") {
             e.preventDefault()
-            const oldSortKey = Object.keys(instance.data.sort.get())[0];
+            const oldSortKey = Object.keys(instance.sort.get())[0];
             const newSortKey = $target.data('sort');
             let newSort = {};
             if (oldSortKey == newSortKey) {
-                newSort[newSortKey] = instance.data.sort.get()[oldSortKey] * -1;
+                newSort[newSortKey] = instance.sort.get()[oldSortKey] * -1;
             } else {
                 newSort[newSortKey] = $target.data('direction');
             }
-            instance.data.sort.set(newSort)
+            instance.sort.set(newSort)
         }
 
     },

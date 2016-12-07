@@ -50,7 +50,13 @@ const autoTable= AutoTable({options})
 |  publish | optional  |  Function | the context is same for Meteor.publish (it mean you can access this.userId) and have return true for allow publish |  
 |  publishExtraFields | optional  |  Array | for publish extra fields|
 |  link | optional  |  Function | receive as parameter the doc and the colunm key wehere click was, and have to return the href of the link, leave in blank for no link, you can handle the events (see below)|
-
+publishExtraCollection:function(blueCards){
+        let familiesIds=blueCards.map((bc)=>{
+            return bc.familyId
+        })
+        familiesIds=_.uniq(familiesIds)
+        return Meteor.users.find({_id: {$in: familiesIds }},{fields: {groups: 1, roles: 1}})
+    },
 
 
 ##### <a name="fieldsObject"></a>fields Object format

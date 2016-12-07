@@ -11,10 +11,10 @@ import {_} from 'lodash'
  */
 Template.atFilter.helpers({
     columns () {
-        return this.columns
+        return this.columnsReactive.get()
     },
     schema(){
-        return AutoTable.getInstance(this.id).schema
+        return Template.instance().autoTable.schema
     },
     multipleOperators(){
         return Array.isArray(this.operators) && this.operators.length > 1
@@ -25,8 +25,19 @@ Template.atFilter.helpers({
     },
     columnIsInFilter(){
         return !!Template.instance().autoTable.schema.schema(this.key)
-    }
+    },
+    value(){
+        //console.log('value', this)
+        const schema = Template.instance().autoTable.schema.schema(this.key)
+        //console.log($('[name="'+this.key+'"]'))
 
+        if (typeof schema.type=="function" && schema.type() == new Date){
+            return AutoForm.valueConverters.dateToDateString(new Date(this.filter))
+        }
+
+        return this.filter
+
+    }
 
 });
 
@@ -45,18 +56,21 @@ Template.atFilter.events({
 formData1 = ''
 Template.atFilter.onCreated(function () {
     const parentData = Template.parentData()
-    this.autoTable=AutoTable.getInstance(parentData.id)
+
+    this.autoTable = parentData.at
+    console.log('parentData', parentData)
     const self = this
     AutoForm.addHooks(
-        this.data.id,
+        this.autoTable.id,
         {
 
             onSubmit: function (doc, modifier, currentDoc) {
+                console.log('onSubmit ***********************************', self)
                 const formData = new FormData($(this.event.currentTarget).get(0))
-                let columns = parentData.columns.get()
+                let columns = self.data.columnsReactive.get()
 
                 for (let column of columns) {
-                    const val = _.get(doc,column.key.split('.'))
+                    const val = _.get(doc, column.key.split('.'))
                     column.operator = formData.get(column.key + '_operator')
                     if (val !== '' && val !== null && val !== undefined) {
                         column.filter = val
@@ -64,8 +78,9 @@ Template.atFilter.onCreated(function () {
                         delete column.filter
                     }
                 }
-                parentData.columns.set(columns)
-
+                console.log(1)
+                self.data.columnsReactive.set(columns)
+                console.log(2, columns)
                 return false
             }
         }
