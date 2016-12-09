@@ -80,7 +80,7 @@ export class AutoTable {
         if (!schema && this.settings.options.filters) throw new Meteor.Error('schema parameter is required when filter option is on')
         columns = _.map(columns, (column) => {
             if (!column.label && this.schema) {
-                column.label = this.schema.label(column.key) || ''
+                column.label = (this.schema && this.schema.label(column.key)) || ''
             }
             if (!column.operator) {
                 column.operator = null

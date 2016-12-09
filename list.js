@@ -233,7 +233,7 @@ Template.atTable.helpers({
 
 Template.atTable.events({
     'change input[name="columns"]'(e, instance){
-        let columns = instance.data.columns.get()
+        let columns = instance.columns.get()
         const $input = $(e.currentTarget)
         const key = $input.val()
         //const number = $column.index('table thead th[key]')
@@ -244,7 +244,7 @@ Template.atTable.events({
             }
             return field
         })
-        instance.data.columns.set(columns)
+        instance.columns.set(columns)
     },
     'click .showMore'(e, instance){
         instance.showingMore.set(true)
