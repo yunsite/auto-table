@@ -177,6 +177,7 @@ Template.atTable.helpers({
     rows: () => {
         const instance = Template.instance()
         let query = instance.query.get() //
+        console.log('local query',query)
         const cursor = instance.autoTable.collection.find(query, {
             sort: instance.sort.get(),
             limit: instance.limit.get(),

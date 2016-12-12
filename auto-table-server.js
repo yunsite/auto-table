@@ -26,9 +26,13 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     if (!_.isEmpty(autoTable.query)) {
         query = _.defaultsDeep(_.clone(autoTable.query), query)
     }
-
-    if (!autoTable.publish.call(this)) {
+    const publication = autoTable.publish.call(this,id, limit, query , sort)
+    if (publication === false) {
         return this.ready()
+    }
+    if (publication !== true) {
+        console.info('custom publication')
+        return publication
     }
     if (autoTable.settings.options.showing) {
 
@@ -37,10 +41,11 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         Counts = Counts.Counts
         Counts.publish(this, 'atCounter' + id, autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
-    const cursor=autoTable.collection.find(query, {fields, sort, limit})
+    const cursor = autoTable.collection.find(query, {fields, sort, limit})
     let publications = [cursor]
-    if (typeof autoTable.publishExtraCollection == 'function'){
-        publications=publications.concat(autoTable.publishExtraCollection.call(this,cursor))
+    if (typeof autoTable.publishExtraCollection == 'function') {
+        publications = publications.concat(autoTable.publishExtraCollection.call(this, cursor))
     }
     return publications
+
 })
