@@ -10,7 +10,10 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     check(query, Object)
     check(sort, Object)
     const autoTable = AutoTable.getInstance(id)
-    if (!autoTable) throw new Meteor.Error('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
+    if (!autoTable) {
+        console.error('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
+        throw new Meteor.Error('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
+    }
     let fields = _.map(autoTable.columns, 'key')
     const publishExtraFields = autoTable.publishExtraFields || []
     fields = fields.concat(publishExtraFields)
@@ -23,6 +26,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     if (!_.isEmpty(autoTable.query)) {
         query = _.defaultsDeep(_.clone(autoTable.query), query)
     }
+
     if (!autoTable.publish.call(this)) {
         return this.ready()
     }
