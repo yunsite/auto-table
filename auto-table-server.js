@@ -23,13 +23,9 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         return field.split('.')[0]
     })
     fields = _.zipObject(fields, _.fill(Array(fields.length), true))
-    console.log(id,query)
-
     if (!_.isEmpty(autoTable.query)) {
         query = _.defaultsDeep(_.clone(autoTable.query), query)
     }
-    console.log(id,query)
-
     const publication = autoTable.publish.call(this,id, limit, query , sort)
     if (publication === false) {
         return this.ready()
