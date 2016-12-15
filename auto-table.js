@@ -93,6 +93,7 @@ export class AutoTable {
             label: Match.Maybe(String),
             key: Match.Optional(String),
             template: Match.Optional(String),
+            templateData:  Match.Optional(Function),
             invisible: Match.Maybe(Boolean),
             operator:  Match.Optional(Match.OneOf(String,null)),
             render: Match.Optional(Match.OneOf(Function,Object,String)),
