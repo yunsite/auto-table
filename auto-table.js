@@ -2,7 +2,7 @@
  * Created by cesar on 9/11/16.
  */
 import {_} from 'lodash'
-
+import {ReactiveVar} from 'meteor/reactive-var'
 
 let SimpleSchema = {}
 
@@ -25,6 +25,7 @@ export class AutoTable {
         check(settings, Object)
         check(query, Object)
         this.id = id
+        this.subsReadyVar=new ReactiveVar(false)
         this.collection = collection
         this.schema = schema
         this.query = query
@@ -109,6 +110,13 @@ export class AutoTable {
 
         AutoTable.instances = AutoTable.instances ? AutoTable.instances : []
         AutoTable.instances.push(this)
+
+    }
+    setSubscriptionReady(value){
+        this.subsReadyVar.set(value)
+    }
+    subscriptionReady(){
+        return this.subsReadyVar.get()
     }
 }
 AutoTable.getInstance = function (id) {

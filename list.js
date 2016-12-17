@@ -29,7 +29,6 @@ Template.atTable.onCreated(function () {
     this.showingMore = new ReactiveVar(false)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
     this.sessionName = `${this.autoTable.id}${userId}`
-    this.filters = new PersistentReactiveVar('filters' + this.sessionName, {})
     this.columns = new PersistentReactiveVar('columns' + this.sessionName, this.autoTable.columns)
     let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
     let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
@@ -41,19 +40,27 @@ Template.atTable.onCreated(function () {
     }
     this.limit = ReactiveVar(parseInt(this.data.limit || defaultLimit))
     this.query = new ReactiveVar({})
-    this.filters = new ReactiveVar({})
+    this.filtered = new ReactiveVar({})
     this.sort = new PersistentReactiveVar('sort' + this.sessionName, {});
     this.autorun(() => {
+        this.autoTable.setSubscriptionReady(false)
         const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
-        const customQuery = typeof this.data.customQuery=="function" ? this.data.customQuery() :  this.data.customQuery || {}
+        this.filtered.set(!_.isEmpty(filters))
+        const customQuery = typeof this.data.customQuery == "function" ? this.data.customQuery() : this.data.customQuery || {}
         const query = this.autoTable.query
         _.defaultsDeep(filters, customQuery)
+
         _.defaultsDeep(filters, query)
         this.query.set(filters)
-        console.log('*****************************************************************customQuery list autotable',customQuery)
+        console.log('*****************************************************************customQuery list autotable', customQuery)
         //console.log('autorun queryToSend', filters)
         this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
-            onReady: () => this.showingMore.set(false)
+            onReady: () => {
+                this.showingMore.set(false)
+                this.autoTable.setSubscriptionReady(true)
+
+            }
+
         })
     })
 
@@ -132,7 +139,7 @@ Template.atTable.helpers({
                 return memo + Number(!!field.invisible && !!field.filter)
             }, 0) > 0
     },
-    filtered: () => !!_.isEmpty(Template.instance().filters.get()),
+    filtered: () => Template.instance().filtered.get(),
     atts: (field) => {
         if (!Template.instance().columns)
             return
@@ -173,11 +180,11 @@ Template.atTable.helpers({
         return val
 
     },
-    columns: () =>  Template.instance().columns.get(),
+    columns: () => Template.instance().columns.get(),
     rows: () => {
         const instance = Template.instance()
         let query = instance.query.get() //
-        console.log('local query',query)
+        console.log('local query', query)
         const cursor = instance.autoTable.collection.find(query, {
             sort: instance.sort.get(),
             limit: instance.limit.get(),
