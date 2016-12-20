@@ -9,6 +9,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     check(limit, Number)
     check(query, Object)
     check(sort, Object)
+
     const autoTable = AutoTable.getInstance(id)
     if (!autoTable) {
         console.error('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
@@ -46,6 +47,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     if (typeof autoTable.publishExtraCollection == 'function') {
         publications = publications.concat(autoTable.publishExtraCollection.call(this, cursor))
     }
+    console.log('time ',new Date - time,'query ', query,'count ',cursor.count())
     return publications
 
 })
