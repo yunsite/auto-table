@@ -63,24 +63,19 @@ Template.atFilter.onCreated(function () {
     AutoForm.addHooks(
         this.autoTable.id,
         {
-
             onSubmit: function (doc, modifier, currentDoc) {
-                console.log('onSubmit ***********************************', self)
-                const formData = new FormData($(this.event.currentTarget).get(0))
+                const form=$(this.event.currentTarget)
                 let columns = self.data.columnsReactive.get()
-
                 for (let column of columns) {
                     const val = _.get(doc, column.key.split('.'))
-                    column.operator = formData.get(column.key + '_operator')
+                    column.operator = form.find("[name='"+column.key + "_operator']").val()
                     if (val !== '' && val !== null && val !== undefined) {
                         column.filter = val
                     } else {
                         delete column.filter
                     }
                 }
-                console.log(1)
                 self.data.columnsReactive.set(columns)
-                console.log(2, columns)
                 return false
             }
         }
