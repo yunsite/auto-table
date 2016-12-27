@@ -27,14 +27,12 @@ Template.atFilter.helpers({
         return !!Template.instance().autoTable.schema.schema(this.key)
     },
     value(){
-        //console.log('value', this)
         const schema = Template.instance().autoTable.schema.schema(this.key)
-        //console.log($('[name="'+this.key+'"]'))
-
-        if (typeof schema.type=="function" && schema.type() == new Date){
-            return AutoForm.valueConverters.dateToDateString(new Date(this.filter))
+        if (typeof schema.type == "function" && schema.type() == new Date) {
+            if (this.filter==undefined) return ''
+            const value = new Date(this.filter).toString()
+            return value
         }
-
         return this.filter
 
     }
@@ -56,19 +54,17 @@ Template.atFilter.events({
 formData1 = ''
 Template.atFilter.onCreated(function () {
     const parentData = Template.parentData()
-
     this.autoTable = parentData.at
-    console.log('parentData', parentData)
     const self = this
     AutoForm.addHooks(
         this.autoTable.id,
         {
             onSubmit: function (doc, modifier, currentDoc) {
-                const form=$(this.event.currentTarget)
+                const form = $(this.event.currentTarget)
                 let columns = self.data.columnsReactive.get()
                 for (let column of columns) {
                     const val = _.get(doc, column.key.split('.'))
-                    column.operator = form.find("[name='"+column.key + "_operator']").val()
+                    column.operator = form.find("[name='" + column.key + "_operator']").val()
                     if (val !== '' && val !== null && val !== undefined) {
                         column.filter = val
                     } else {

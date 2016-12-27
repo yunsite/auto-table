@@ -47,12 +47,10 @@ Template.atTable.onCreated(function () {
         const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
         this.filtered.set(!_.isEmpty(filters))
         const customQuery = typeof this.data.customQuery == "function" ? this.data.customQuery() : this.data.customQuery || {}
-        const query = this.autoTable.query
+        const query = _.clone(this.autoTable.query)
         _.defaultsDeep(filters, customQuery)
-
         _.defaultsDeep(filters, query)
         this.query.set(filters)
-        console.log('*****************************************************************customQuery list autotable', customQuery)
         //console.log('autorun queryToSend', filters)
         this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
             onReady: () => {
@@ -184,7 +182,6 @@ Template.atTable.helpers({
     rows: () => {
         const instance = Template.instance()
         let query = instance.query.get() //
-        console.log('local query', query)        
         for (var attrname in instance.data.customQuery) { query[attrname] = instance.data.customQuery[attrname];}
         const cursor = instance.autoTable.collection.find(query, {
             sort: instance.sort.get(),

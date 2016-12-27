@@ -25,7 +25,8 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     })
     fields = _.zipObject(fields, _.fill(Array(fields.length), true))
     if (!_.isEmpty(autoTable.query)) {
-        query = _.defaultsDeep(_.clone(autoTable.query), query)
+        const autoTableQuery=_.cloneDeep(autoTable.query)
+        query = _.defaultsDeep(autoTableQuery, query)
     }
     const publication = autoTable.publish.call(this,id, limit, query , sort)
     if (publication === false) {
@@ -47,7 +48,6 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     if (typeof autoTable.publishExtraCollection == 'function') {
         publications = publications.concat(autoTable.publishExtraCollection.call(this, cursor))
     }
-    console.log('time ',new Date - time,'query ', query,'count ',cursor.count())
     return publications
 
 })
