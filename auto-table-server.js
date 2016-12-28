@@ -4,7 +4,8 @@ import {_} from 'lodash'
 
 
 Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
-    let time = new Date().getTime()
+    if (Meteor.isDevelopment) console.log('atPubSub',id, query)
+        let time = new Date().getTime()
     check(id, String)
     check(limit, Number)
     check(query, Object)

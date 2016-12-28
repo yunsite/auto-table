@@ -35,7 +35,7 @@ Template.atTable.onCreated(function () {
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
-        console.log('*******************************ARE DIFFERENTS*********************************', storedColumns, newColumns)
+        if (Meteor.isDevelopment) console.log('*******************************ARE DIFFERENTS*********************************', storedColumns, newColumns)
         this.columns.set(this.autoTable.columns)
     }
     this.limit = ReactiveVar(parseInt(this.data.limit || defaultLimit))
@@ -51,7 +51,7 @@ Template.atTable.onCreated(function () {
         _.defaultsDeep(filters, customQuery)
         _.defaultsDeep(filters, query)
         this.query.set(filters)
-        //console.log('autorun queryToSend', filters)
+        if (Meteor.isDevelopment) console.log('autotable query', filters)
         this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
             onReady: () => {
                 this.showingMore.set(false)
@@ -82,6 +82,10 @@ export const createFilter = function (columns, schema) {
         const operator = column.operator
         if (val !== '' && val !== null && val !== undefined) {
             selector[operator] = val
+            if (operator == '$exists'){
+                selector[operator] = !!val
+                selector['$ne']=null
+            }
             if (operator == '$regex') selector['$options'] = 'gi'
             filters[column.key] = selector
         }

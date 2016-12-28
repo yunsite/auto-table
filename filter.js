@@ -43,7 +43,7 @@ Template.atFilter.helpers({
 Template.atFilter.events({
     'click .operator a'(e, instance){
         const $parent = $(e.currentTarget).parents('.input-group ')
-        const $form = $(e.currentTarget).parents('form')
+        const $form = $(e.currentTarget).closest('form')
         const $input = $parent.find('input[type="hidden"].operator')
         const $btn = $parent.find('button')
         $input.val(this.operator)
