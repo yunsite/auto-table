@@ -123,3 +123,4 @@ export class AutoTable {
 AutoTable.getInstance = function (id) {
     return _.find(this.instances, {id})
 }
+
