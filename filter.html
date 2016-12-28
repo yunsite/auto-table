@@ -5,28 +5,30 @@
 
             <td style="{{#if invisible}}display: none{{/if}}">
                 {{#if columnIsInFilter}}
-                <div class="{{../../settings.klass.filterWrapper}} {{#if afFieldIsInvalid name=key }}{{../../settings.klass.filterWrapperHasError}}{{/if}}">
-                    <div class=" {{#if multipleOperators}}input-group {{/if}}">
-                        {{#if multipleOperators}}
-                            <div class="{{../../settings.klass.filterGroup}} ">
-                                <button type="button" class="{{../../settings.klass.filterOperatorButton}}" data-toggle="dropdown"
-                                        aria-haspopup="true" aria-expanded="false">{{{selected.shortLabel}}}
-                                </button>
-                                <ul class="{{../../settings.klass.filterOperatorList}}">
-                                    {{#each operators}}
-                                        <li><a href="#{{value}}">{{{selected.shortLabel}}} {{label}}</a></li>
-                                    {{/each}}
-                                </ul>
-                            </div>
-                        {{/if}}
+                    <div class="{{../../settings.klass.filterWrapper}} {{#if afFieldIsInvalid
+                                                                             name=key }}{{../../settings.klass.filterWrapperHasError}}{{/if}}">
+                        <div class=" {{#if multipleOperators}}input-group {{/if}}">
+                            {{#if multipleOperators}}
+                                <div class="{{../../settings.klass.filterGroup}} ">
+                                    <button type="button" class="{{../../settings.klass.filterOperatorButton}}"
+                                            data-toggle="dropdown"
+                                            aria-haspopup="true" aria-expanded="false">{{{selected.shortLabel}}}
+                                    </button>
+                                    <ul class="{{../../settings.klass.filterOperatorList}}">
+                                        {{#each operators}}
+                                            <li><a href="#{{value}}">{{{selected.shortLabel}}} {{label}}</a></li>
+                                        {{/each}}
+                                    </ul>
+                                </div>
+                            {{/if}}
 
-                        <input name="{{key}}_operator" value={{operator}} type="hidden"  class="operator">
-                        {{> afFieldInput name=key  custom=true value=value class=../../settings.klass.filterInput }}
-                    </div><!-- /input-group -->
-                    {{#if afFieldIsInvalid name=key }}
-                        <span class="help-block">{{afFieldMessage name=key }}</span>
-                    {{/if}}
-                </div>
+                            <input name="{{key}}_operator" value={{operator}} type="hidden" class="operator">
+                            {{> afFieldInput name=key  custom=true value=value options=selected.options class=../../settings.klass.filterInput }}
+                        </div><!-- /input-group -->
+                        {{#if afFieldIsInvalid name=key }}
+                            <span class="help-block">{{afFieldMessage name=key }}</span>
+                        {{/if}}
+                    </div>
                 {{/if}}
             </td>
         {{/each}}

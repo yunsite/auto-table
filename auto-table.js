@@ -102,6 +102,7 @@ export class AutoTable {
                 label: String,
                 shortLabel: String,
                 operator: String,
+                options: Match.Optional(Array)
             }])
         }])
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')

@@ -115,6 +115,12 @@ publishExtraCollection:function(blueCards){
                        shortLabel: '][',
                        operator: '$nin',
                    },
+                   {
+                        label: 'No value',
+                        shortLabel: '∃',
+                        operator: '$exists',
+                        options: [{label: 'Yes', value: 1},{ label: 'No', value: 0 }]
+                   }
                ]
 }
 ```
