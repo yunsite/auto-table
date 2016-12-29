@@ -1,6 +1,7 @@
 import {PersistentReactiveVar} from "meteor/cesarve:persistent-reactive-var"
 import {ReactiveVar} from "meteor/reactive-var"
 import {AutoTable} from "./auto-table"
+import {AutoForm} from "meteor/aldeed:autoform"
 import {Template} from "meteor/templating"
 import "./loading.css"
 import "./auto-table.css"
@@ -63,6 +64,19 @@ Template.atTable.onCreated(function () {
     })
 
 });
+export const  tryParseJSON =function(jsonString){
+    if (typeof jsonString!='string') return false
+    try {
+        var o = JSON.parse(jsonString);
+        if (o && typeof o === "object") {
+            return o;
+        }
+    }
+    catch (e) {
+
+    }
+    return false;
+};
 export const createFilter = function (columns, schema) {
     //columns has all information to create the filters
     //but has to be cleans (strings to dates for eg)
@@ -77,17 +91,29 @@ export const createFilter = function (columns, schema) {
     const filters = {}
     for (let column of columns) {
         const selector = {}
-        const val = cleaned[column.key]
+        let val = cleaned[column.key]
 
         const operator = column.operator
         if (val !== '' && val !== null && val !== undefined) {
-            selector[operator] = val
-            if (operator == '$exists'){
-                selector[operator] = !!val
-                selector['$ne']=null
+            //for any JSON value forget about the operator and use the object
+            const queryObj=tryParseJSON(val)
+            if ( queryObj ){
+                filters[column.key]=queryObj
+            }else{
+                selector[operator] = val
+                if (operator == '$exists'){
+                    if (val instanceof Date && val.getTime()==AutoForm.valueConverters.stringToDate("0").getTime()){
+                        val=false
+                    }
+                    if (typeof val =='string' && val=="0"){
+                        val=false
+                    }
+                    selector[operator] = !!val
+                }
+                if (operator == '$regex') selector['$options'] = 'gi'
+                filters[column.key] = selector
             }
-            if (operator == '$regex') selector['$options'] = 'gi'
-            filters[column.key] = selector
+
         }
     }
     return filters
