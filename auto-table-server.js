@@ -34,7 +34,6 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         return this.ready()
     }
     if (publication !== true) {
-        console.info('custom publication')
         return publication
     }
     if (autoTable.settings.options.showing) {
