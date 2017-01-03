@@ -97,8 +97,10 @@ export const createFilter = function (columns, schema) {
         if (val !== '' && val !== null && val !== undefined) {
             //for any JSON value forget about the operator and use the object
             const queryObj=tryParseJSON(val)
+
             if ( queryObj ){
-                filters[column.key]=queryObj
+                console.log('queryObj',queryObj)
+                _.defaultsDeep(filters,queryObj)
             }else{
                 selector[operator] = val
                 if (operator == '$exists'){
