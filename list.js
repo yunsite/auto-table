@@ -99,8 +99,8 @@ export const createFilter = function (columns, schema) {
             const queryObj=tryParseJSON(val)
 
             if ( queryObj ){
-                console.log('queryObj',queryObj)
-                _.defaultsDeep(filters,queryObj)
+                    console.log('queryObj',queryObj)
+                _.merge(filters,queryObj)
             }else{
                 selector[operator] = val
                 if (operator == '$exists'){
