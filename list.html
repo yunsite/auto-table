@@ -6,9 +6,17 @@
                 {{> Template.dynamic template=settings.options.loadingTemplate}}
             </div>
         {{/unless}}
-        {{#if settings.options.columnsDisplay}}
 
-            <div class="{{settings.klass.buttonColumnWrapper}}">
+
+
+        <div class="{{settings.klass.buttonColumnWrapper}}">
+            {{#if settings.options.import}}
+            <button type="button" class="{{settings.klass.buttonImport}} buttonImport"
+                    aria-haspopup="true" aria-expanded="false">
+                {{settings.msg.buttonImport}}
+            </button>
+            {{/if}}
+            {{#if settings.options.columnsDisplay}}
                 <button type="button" class="{{settings.klass.buttonColumn}} " data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                     {{settings.msg.columns}} <span class=" {{settings.klass.hiddenFilter}}">{{#if
@@ -21,8 +29,9 @@
                         </label></p></li>
                     {{/each}}
                 </ul>
-            </div>
-        {{/if}}
+            {{/if}}
+        </div>
+
         <div class="clearfix"></div>
         <div class="{{settings.klass.tableWrapper}}" style="overflow-y: visible">
             <table class="{{settings.klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">

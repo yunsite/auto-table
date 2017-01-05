@@ -11,7 +11,7 @@ Package.onUse(function (api) {
     api.use(['ecmascript','underscore','check']);
     api.use(['templating', 'cesarve:persistent-reactive-var','webtempest:animate','reactive-var'], 'client');
     api.use(['tmeasday:publish-counts'], ['client', 'server'], {weak: true})
-    api.use(['aldeed:autoform','aldeed:simple-schema'], ['client'], {weak: true})
+    api.use(['aldeed:autoform','aldeed:simple-schema','cesarve:auto-import'], ['client'], {weak: true})
     api.mainModule('auto-table-client.js', 'client');
     api.mainModule('auto-table-server.js', 'server');
     api.mainModule('auto-table.js');

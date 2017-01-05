@@ -8,6 +8,7 @@ import "./auto-table.css"
 import "./list.html"
 import "./loading.html"
 import "./filter"
+import "./import"
 import {_} from 'lodash'
 
 const defaultLimit = 25
@@ -270,6 +271,10 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
+    'click .buttonImport'(e,instace){
+        console.log(e)
+        Blaze.renderWithData(Template.atImport,{columns: instace.autoTable.columns},$('body').get(0))
+    },
     'change input[name="columns"]'(e, instance){
         let columns = instance.columns.get()
         const $input = $(e.currentTarget)
