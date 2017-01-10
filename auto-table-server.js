@@ -81,29 +81,33 @@ Meteor.methods({
         for (let i in allData) {
             const obj = {}
             for (const column of columns) {
-                const atColumn = _.find(autoTable.columns, {key: column.key})// find the same colum in the autotable declarion for get the render function (that is not in passed columns)
-                if (typeof atColumn.render == 'function') {
-                    let val = atColumn.render.call(allData[i], _.get(allData[i], column.key))
-                    if (typeof val == 'string') {
+                if (!column.invisible) {
+                    const atColumn = _.find(autoTable.columns, {key: column.key})// find the same colum in the autotable declarion for get the render function (that is not in passed columns)
+                    if (typeof atColumn.render == 'function') {
+                        let val = atColumn.render.call(allData[i], _.get(allData[i], column.key))
+                        if (typeof val == 'string') {
 
-                        val = val.replace(/<(?:.|\n)*?>/gm, ' ');
+                            val = val.replace(/<(?:.|\n)*?>/gm, ' ');
+                        }
+
+                        _.set(obj, column.key, val)
+                    } else {
+                        _.set(obj, column.key, _.get(allData[i], column.key))
                     }
-
-                    _.set(obj, column.key, val)
-                } else {
-                    _.set(obj, column.key, _.get(allData[i], column.key))
                 }
             }
             data.push(obj)
         }
         const fieldsCsv = [];
         for (let i in columns) {
-            fieldsCsv.push({
-                label: columns[i].label,
-                value: columns[i].key, // data.path.to.something
-                default: '',
+            if (!columns[i].invisible) {
+                fieldsCsv.push({
+                    label: columns[i].label,
+                    value: columns[i].key, // data.path.to.something
+                    default: '',
 
-            })
+                })
+            }
         }
         return json2csv({data: data, fields: fieldsCsv});
 
