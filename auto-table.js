@@ -40,6 +40,7 @@ export class AutoTable {
                 showing: false,
                 filters: false,
                 buttons: [],
+                export: false,
 
             },
             msg: {
@@ -54,6 +55,8 @@ export class AutoTable {
                 noRecords: 'There are not records',
                 noRecordsCriteria: 'There are not records with this criteria',
                 hiddenFilter: '(hidden filters)',
+                export: 'Export',
+                exportFile: 'file'
             },
             klass: {
                 hiddenFilter: 'small danger',
@@ -78,6 +81,8 @@ export class AutoTable {
                 showing: 'col-xs-12 text-right small',
                 noRecordsWrapper: ' text-center noRecordsWrapper ',
                 noRecords: 'noRecords',
+                buttonExport:'btn btn-default',
+                exportSpinner:  'fa-spinner fa-spin fa-fw'
             },
         }
             this.settings = _.defaultsDeep(_.clone(settings), defaults)

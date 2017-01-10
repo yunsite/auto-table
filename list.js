@@ -9,6 +9,7 @@ import "./list.html"
 import "./loading.html"
 import "./filter"
 import {_} from 'lodash'
+import {saveAs} from 'node-safe-filesaver'
 
 const defaultLimit = 25
 
@@ -272,9 +273,21 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
-    'click .buttonImport'(e, instance){
-        console.log(e)
-        Blaze.renderWithData(Template.atImport, {columns: instance.autoTable.columns}, $('body').get(0))
+    'click .buttonExport'(e, instance){
+        e.preventDefault();
+        $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);
+        const query = instance.query.get()
+        const sort = instance.sort.get()
+        const columns = instance.columns.get()
+        Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
+            const blob = new Blob([file], {type: "text/csv;charset=utf-8"});
+            $('.export i').removeClass(instance.autoTable.settings.klass.exportSpinner);
+            if (err) {
+                //todo
+                return
+            }
+            saveAs(blob, instance.autoTable.settings.msg.exportFile, '.csv')
+        })
     },
     'change input[name="columns"]'(e, instance){
         let columns = instance.columns.get()

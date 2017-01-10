@@ -17,6 +17,10 @@
             </button>
             {{/each}}
             {{#if settings.options.columnsDisplay}}
+                <button type="button" class="{{settings.klass.buttonExport}} buttonExport "
+                        aria-haspopup="true" aria-expanded="false">
+                    {{settings.msg.export}} <i></i>
+                </button>
                 <button type="button" class="{{settings.klass.buttonColumn}} " data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                     {{settings.msg.columns}} <span class=" {{settings.klass.hiddenFilter}}">{{#if

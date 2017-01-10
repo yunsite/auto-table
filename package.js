@@ -18,5 +18,7 @@ Package.onUse(function (api) {
 });
 
 Npm.depends({
-    'lodash':'4.17.2'
+    'lodash':'4.17.2',
+    'json2csv': '3.7.3'
+
 })
