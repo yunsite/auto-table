@@ -56,10 +56,11 @@ export class AutoTable {
                 noRecordsCriteria: 'There are not records with this criteria',
                 hiddenFilter: '(hidden filters)',
                 export: 'Export',
-                exportFile: 'file'
+                exportFile: 'file',
+                clearFilter: 'Clear filter'
             },
             klass: {
-                hiddenFilter: 'small danger',
+                hiddenFilter: 'small warning',
                 filterInput: 'input-sm',
                 filterWrapper: 'form-group',
                 filterWrapperHasError: 'has-error',
@@ -68,7 +69,9 @@ export class AutoTable {
                 filterOperatorList: 'dropdown-menu dropdown-menu-left operator',
                 tableWrapper: 'table-responsive',
                 table: 'table table-bordered table-condensed table-striped',
-                buttonColumnWrapper: ' btn-group at-checkbox-group pull-right margin-up-down',
+                buttonColumnWrapper2: ' btn-group at-checkbox-group pull-right margin-up-down',
+                buttonColumnWrapper1: ' btn-group at-checkbox-group pull-left margin-up-down',
+                buttonClearFilter: 'btn btn-warning ',
                 buttonColumn: 'btn btn-default dropdown-toggle',
                 buttonColumnList: ' dropdown-menu',
                 buttonColumnItem: '',

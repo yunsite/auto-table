@@ -11,7 +11,7 @@ import "./filter"
 import {_} from 'lodash'
 import {saveAs} from 'node-safe-filesaver'
 
-const defaultLimit = 25
+const defaultLimit = 50
 
 const areDifferents = function (coll1, coll2) {
     if (coll1.length != coll2.length) {
@@ -273,6 +273,10 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
+    'click .clearFilter'(e,instance){
+        $('#' + instance.autoTable.id).find('[name]').val('')
+        $('#' + instance.autoTable.id).submit()
+    },
     'click .buttonExport'(e, instance){
         e.preventDefault();
         $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);

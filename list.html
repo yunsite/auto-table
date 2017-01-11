@@ -6,15 +6,20 @@
                 {{> Template.dynamic template=settings.options.loadingTemplate}}
             </div>
         {{/unless}}
-
-
-
-        <div class="{{settings.klass.buttonColumnWrapper}}">
+        <div class="{{settings.klass.buttonColumnWrapper1}}">
+            {{#if filtered}}
+                <button type="button" class="{{settings.klass.buttonClearFilter}} clearFilter"
+                        aria-haspopup="true" aria-expanded="false">
+                    {{settings.msg.clearFilter}}
+                </button>
+            {{/if}}
+        </div>
+        <div class="{{settings.klass.buttonColumnWrapper2}}">
             {{#each settings.options.buttons}}
-            <button type="button" class="{{klass}}"
-                    aria-haspopup="true" aria-expanded="false">
-                {{{msg}}}
-            </button>
+                <button type="button" class="{{klass}}"
+                        aria-haspopup="true" aria-expanded="false">
+                    {{{msg}}}
+                </button>
             {{/each}}
             {{#if settings.options.columnsDisplay}}
                 <button type="button" class="{{settings.klass.buttonExport}} buttonExport "
@@ -35,7 +40,6 @@
                 </ul>
             {{/if}}
         </div>
-
         <div class="clearfix"></div>
         <div class="{{settings.klass.tableWrapper}}" style="overflow-y: visible">
             <table class="{{settings.klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
