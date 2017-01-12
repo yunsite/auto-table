@@ -13,12 +13,14 @@ import {saveAs} from 'node-safe-filesaver'
 
 const defaultLimit = 50
 
-const areDifferents = function (coll1, coll2) {
-    if (coll1.length != coll2.length) {
+const areDifferents = function (storedColumns, newColumns) {
+    if (storedColumns.length != newColumns.length) {
         return true
     }
-    for (let i = 0; i < coll1.length; i++) {
-        if (!_.isEqual(_.omitBy(coll1[i], _.isNil), _.omitBy(coll2[i], _.isNil))) {
+    for (let i = 0; i < storedColumns.length; i++) {
+        storedColumns=_.omitBy(storedColumns,_.isNil)
+        if (!_.isMatch(storedColumns[i],newColumns[i])) {
+            console.log(storedColumns[i],newColumns[i])
             return true
         }
     }
@@ -33,8 +35,8 @@ Template.atTable.onCreated(function () {
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
     this.sessionName = `${this.autoTable.id}${userId}`
     this.columns = new PersistentReactiveVar('columns' + this.sessionName, this.autoTable.columns)
-    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operators'))
-    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operators'))
+    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template','operator' ,'operators'))
+    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template','operator' , 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
