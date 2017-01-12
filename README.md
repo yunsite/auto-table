@@ -133,6 +133,8 @@ publishExtraCollection:function(blueCards){
             columnsDisplay: true, // {Boolean} allow to show/hide columns
             showing: false, {Boolean} //show legend (Showing 15 records from 143) //need to install 'tmeasday:publish-counts' package
             filters: false, {Boolean}  //show filter for each field
+            buttons: [klass: 'btn-etc',msg:'export/import'] //todo
+
         },
         msg: { // Messages (ypu can custumize to any languaje )
             columns: 'Columns', //{String} text for Button show/hide columns 

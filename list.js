@@ -18,9 +18,9 @@ const areDifferents = function (storedColumns, newColumns) {
         return true
     }
     for (let i = 0; i < storedColumns.length; i++) {
-        storedColumns=_.omitBy(storedColumns,_.isNil)
-        if (!_.isMatch(storedColumns[i],newColumns[i])) {
-            console.log(storedColumns[i],newColumns[i])
+        storedColumns = _.omitBy(storedColumns, _.isNil)
+        if (!_.isMatch(storedColumns[i], newColumns[i])) {
+            console.log(storedColumns[i], newColumns[i])
             return true
         }
     }
@@ -35,8 +35,8 @@ Template.atTable.onCreated(function () {
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
     this.sessionName = `${this.autoTable.id}${userId}`
     this.columns = new PersistentReactiveVar('columns' + this.sessionName, this.autoTable.columns)
-    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template','operator' ,'operators'))
-    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template','operator' , 'operators'))
+    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
+    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
@@ -50,13 +50,15 @@ Template.atTable.onCreated(function () {
     this.autorun(() => {
         this.autoTable.setSubscriptionReady(false)
         const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
+        this.autoTable.filters = filters
         this.filtered.set(!_.isEmpty(filters))
         const customQuery = typeof this.data.customQuery == "function" ? this.data.customQuery() : this.data.customQuery || {}
-        const query = _.clone(this.autoTable.query)
+        const query = _.cloneDeep(this.autoTable.query)
         _.defaultsDeep(filters, customQuery)
         _.defaultsDeep(filters, query)
         this.query.set(filters)
         if (Meteor.isDevelopment) console.log('autotable query', filters)
+
         this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
             onReady: () => {
                 this.showingMore.set(false)
@@ -275,7 +277,7 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
-    'click .clearFilter'(e,instance){
+    'click .clearFilter'(e, instance){
         $('#' + instance.autoTable.id).find('[name]').val('')
         $('#' + instance.autoTable.id).submit()
     },
