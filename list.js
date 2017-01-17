@@ -12,19 +12,38 @@ import {_} from 'lodash'
 import {saveAs} from 'node-safe-filesaver'
 
 const defaultLimit = 50
+/*
+ const hashCode = function (str) {
+ var hash = 0, i, chr, len;
+ if (str.length === 0) return hash;
+ for (i = 0, len = str.length; i < len; i++) {
+ chr = str.charCodeAt(i);
+ hash = ((hash << 5) - hash) + chr;
+ hash |= 0; // Convert to 32bit integer
+ }
+ return hash;
+ };*/
+const areDifferents = function (newColumns) {
 
-const areDifferents = function (storedColumns, newColumns) {
-    if (storedColumns.length != newColumns.length) {
-        return true
+    const hashNew = (JSON.stringify(this.autoTable.columns))
+    const hashOld = new PersistentReactiveVar('columnsTracker' + this.sessionName, hashNew)
+    const res = hashNew != hashOld.get()
+    if (res) {
+        hashOld.set(hashNew)
     }
-    for (let i = 0; i < storedColumns.length; i++) {
-        storedColumns = _.omitBy(storedColumns, _.isNil)
-        if (!_.isMatch(storedColumns[i], newColumns[i])) {
-            console.log(storedColumns[i], newColumns[i])
-            return true
-        }
-    }
-    return false
+    return res
+    /*
+     if (storedColumns.length != newColumns.length) {
+     return true
+     }
+     for (let i = 0; i < storedColumns.length; i++) {
+     storedColumns = _.omitBy(storedColumns, _.isNil)
+     if (!_.isMatch(storedColumns[i], newColumns[i])) {
+     console.log(storedColumns[i], newColumns[i])
+     return true
+     }
+     }
+     return false*/
 }
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
@@ -39,7 +58,7 @@ Template.atTable.onCreated(function () {
     let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
-    if (areDifferents(storedColumns, newColumns)) {
+    if (areDifferents.call(this, storedColumns, newColumns)) {
         if (Meteor.isDevelopment) console.log('*******************************ARE DIFFERENTS*********************************', storedColumns, newColumns)
         this.columns.set(this.autoTable.columns)
     }
@@ -283,19 +302,27 @@ Template.atTable.events({
     },
     'click .buttonExport'(e, instance){
         e.preventDefault();
-        $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);
-        const query = instance.query.get()
-        const sort = instance.sort.get()
-        const columns = instance.columns.get()
-        Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
-            const blob = new Blob([file], {type: "text/csv;charset=utf-8"});
-            $('.export i').removeClass(instance.autoTable.settings.klass.exportSpinner);
-            if (err) {
-                //todo
-                return
-            }
-            saveAs(blob, instance.autoTable.settings.msg.exportFile, '.csv')
-        })
+        if ($('.showMore').length==0){
+            exportTableToCSV(instance.$('table'),instance.autoTable.settings.msg.exportFile)
+        }else{
+
+            console.log('buttonExport')
+            $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);
+            const query = instance.query.get()
+            const sort = instance.sort.get()
+            const columns = instance.columns.get()
+            Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
+                const blob = new Blob([file], {type: "text/csv;charset=utf-8"});
+                $('.export i').removeClass(instance.autoTable.settings.klass.exportSpinner);
+                if (err) {
+                    //todo
+                    console.error(err)
+                    return
+                }
+                saveAs(blob, instance.autoTable.settings.msg.exportFile, '.csv')
+            })
+        }
+
     },
     'change input[name="columns"]'(e, instance){
         let columns = instance.columns.get()
@@ -333,4 +360,33 @@ Template.atTable.events({
     },
 });
 
+
+function exportTableToCSV($table, filename) {
+    var $rows = $table.find('tr'),
+        // Temporary delimiter characters unlikely to be typed by keyboard
+        // This is to avoid accidentally splitting the actual contents
+        tmpColDelim = String.fromCharCode(11), // vertical tab character
+        tmpRowDelim = String.fromCharCode(0), // null character
+        // actual delimiter characters for CSV format
+        colDelim = '","',
+        rowDelim = '"\r\n"',
+
+        // Grab text from table into CSV formatted string
+        csv = '"' + $rows.map(function (i, row) {
+                var $row = $(row), $cols = $row.find('.td,th');
+
+                return $cols.map(function (j, col) {
+                    var $col = $(col), text = $col.text();
+
+                    return text.replace(/"/g, '""').trim(); // escape double quotes
+
+                }).get().join(tmpColDelim);
+
+            }).get().join(tmpRowDelim)
+                .split(tmpRowDelim).join(rowDelim)
+                .split(tmpColDelim).join(colDelim) + '"',
+        csvData = 'data:application/csv;charset=utf-8,' + encodeURIComponent(csv);
+    saveAs(new Blob([csv]), filename + '.csv')
+
+}
 
