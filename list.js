@@ -26,7 +26,7 @@ const defaultLimit = 50
 const areDifferents = function (newColumns) {
 
     const hashNew = (JSON.stringify(this.autoTable.columns))
-    const hashOld = new PersistentReactiveVar('columnsTracker' + this.sessionName, hashNew)
+    const hashOld = new PersistentReactiveVar('columnsTracker' + this.sessionName)
     const res = hashNew != hashOld.get()
     if (res) {
         hashOld.set(hashNew)
@@ -297,7 +297,7 @@ Template.atTable.helpers({
 
 Template.atTable.events({
     'click .clearFilter'(e, instance){
-        $('#' + instance.autoTable.id).find('[name]').val('')
+        $('#' + instance.autoTable.id).find('[data-schema-key]').val('')
         $('#' + instance.autoTable.id).submit()
     },
     'click .buttonExport'(e, instance){
