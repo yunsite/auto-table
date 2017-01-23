@@ -151,7 +151,6 @@ Template.atTable.onRendered(function () {
         this.autorun(() => {
             if (this.subscriptionsReady() && first) {
                 first = false
-                let columns = this.columns.get()
                 Meteor.setTimeout(() => {
                     const instance = this
                     this.$('.sortable').sortable({
@@ -165,6 +164,7 @@ Template.atTable.onRendered(function () {
                         delay: 100,
                         placeholder: "splaceholder",
                         update: function (event, ui) {
+                            let columns = instance.columns.get()
                             const keys = $(this).sortable("toArray")
                             columns = _.sortBy(columns, function (field) {
                                 return keys.indexOf(field.key)
@@ -266,9 +266,9 @@ Template.atTable.helpers({
         const instance = Template.instance();
         let query = instance.query.get()
         if (instance.autoTable.settings.options.showing) {
-            console.log('query', query)
-            console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
-            console.log('count', instance.autoTable.collection.find(query).count())
+            if (Meteor.isDevelopment) console.log('query', query)
+            if (Meteor.isDevelopment) console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
+            if (Meteor.isDevelopment) console.log('count', instance.autoTable.collection.find(query).count())
             return (instance.autoTable.collection.find(query).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
         } else {
             return (instance.autoTable.collection.find(query, {
@@ -296,17 +296,19 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
+    'click .columnsDisplay.dropdown-menu': function (evt, tpl) {
+        evt.stopPropagation(); //avoid to close thbe dropdown after click on text
+    },
     'click .clearFilter'(e, instance){
         $('#' + instance.autoTable.id).find('[data-schema-key]').val('')
         $('#' + instance.autoTable.id).submit()
     },
     'click .buttonExport'(e, instance){
         e.preventDefault();
-        if ($('.showMore').length==0){
-            exportTableToCSV(instance.$('table'),instance.autoTable.settings.msg.exportFile)
-        }else{
+        if ($('.showMore').length == 0) {
+            exportTableToCSV(instance.$('table'), instance.autoTable.settings.msg.exportFile)
+        } else {
 
-            console.log('buttonExport')
             $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);
             const query = instance.query.get()
             const sort = instance.sort.get()
@@ -373,10 +375,10 @@ function exportTableToCSV($table, filename) {
 
         // Grab text from table into CSV formatted string
         csv = '"' + $rows.map(function (i, row) {
-                var $row = $(row), $cols = $row.find('.td,th');
+                const $row = $(row), $cols = $row.find('.td:visible,th:visible');
 
                 return $cols.map(function (j, col) {
-                    var $col = $(col), text = $col.text();
+                    const $col = $(col), text = getText($col.get(0))
 
                     return text.replace(/"/g, '""').trim(); // escape double quotes
 
@@ -390,3 +392,21 @@ function exportTableToCSV($table, filename) {
 
 }
 
+function getText(n) {
+    var rv = '';
+
+    if (n.nodeType == 3) {
+        rv = n.nodeValue;
+    } else {
+        for (var i = 0; i < n.childNodes.length; i++) {
+            rv += getText(n.childNodes[i]);
+        }
+        var d = getComputedStyle(n).getPropertyValue('display');
+        if (d.match(/^block/) || d.match(/list/) || n.tagName == 'BR') {
+            rv += "\n";
+        }
+    }
+
+    return rv;
+
+};

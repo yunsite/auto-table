@@ -28,12 +28,12 @@
                 </button>
             {{/if}}
             {{#if settings.options.columnsDisplay}}
-                <button type="button" class="{{settings.klass.buttonColumn}} " data-toggle="dropdown"
+                <button type="button" class="{{settings.klass.buttonColumn}} columnsDisplay" data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">
                     {{settings.msg.columns}} <span class=" {{settings.klass.hiddenFilter}}">{{#if
                         hiddenFilter}}{{settings.msg.hiddenFilter}}{{/if}}</span><span class="caret"></span>
                 </button>
-                <ul class="{{settings.klass.buttonColumnList}}">
+                <ul class="{{settings.klass.buttonColumnList}} columnsDisplay">
                     {{#each column in columns}}
                         <li {{settings.klass.buttonColumnItem}} ><p><label {{settings.klass.buttonColumnLabel}} > <input
                                 name="columns" type="checkbox" {{atts column}}> {{column.label}}
