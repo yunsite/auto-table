@@ -47,6 +47,7 @@ const areDifferents = function (newColumns) {
 }
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
+    this.allin = false
     if (!this.data.at) throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
     if (!this.data.at instanceof AutoTable) throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
     this.autoTable = this.data.at
@@ -67,7 +68,9 @@ Template.atTable.onCreated(function () {
     this.filtered = new ReactiveVar({})
     this.sort = new PersistentReactiveVar('sort' + this.sessionName, {});
     this.autorun(() => {
-        this.autoTable.setSubscriptionReady(false)
+        //if (!this.allin) {
+            this.autoTable.setSubscriptionReady(false)
+        //}
         const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
         this.autoTable.filters = filters
         this.filtered.set(!_.isEmpty(filters))
@@ -77,15 +80,18 @@ Template.atTable.onCreated(function () {
         _.defaultsDeep(filters, query)
         this.query.set(filters)
         if (Meteor.isDevelopment) console.log('autotable query', filters)
+        if (Meteor.isDevelopment) console.log('autotable sort', this.sort.get())
+        const limit = this.limit.get()
+        //if (!this.allin) {
+            this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
+                onReady: () => {
+                    this.showingMore.set(false)
+                    this.autoTable.setSubscriptionReady(true)
 
-        this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
-            onReady: () => {
-                this.showingMore.set(false)
-                this.autoTable.setSubscriptionReady(true)
+                }
 
-            }
-
-        })
+            })
+        //}
     })
 
 });
@@ -103,6 +109,7 @@ export const tryParseJSON = function (jsonString) {
     return false;
 };
 export const createFilter = function (columns, schema) {
+
     //columns has all information to create the filters
     //but has to be cleans (strings to dates for eg)
     // and has to be formated to selctor mongo
@@ -127,7 +134,12 @@ export const createFilter = function (columns, schema) {
                 console.log('queryObj', queryObj)
                 _.merge(filters, queryObj)
             } else {
-                selector[operator] = val
+                if (val instanceof Date ) {
+                    selector[operator] = moment(val).startOf('day').toDate()
+                }else{
+                    selector[operator] = val
+                }
+
                 if (operator == '$exists') {
                     if (val instanceof Date && val.getTime() == AutoForm.valueConverters.stringToDate("0").getTime()) {
                         val = false
@@ -143,6 +155,7 @@ export const createFilter = function (columns, schema) {
 
         }
     }
+    console.log('createFilter',filters)
     return filters
 }
 Template.atTable.onRendered(function () {
@@ -265,17 +278,19 @@ Template.atTable.helpers({
     showMore: function () {
         const instance = Template.instance();
         let query = instance.query.get()
+        let showMore
         if (instance.autoTable.settings.options.showing) {
             if (Meteor.isDevelopment) console.log('query', query)
             if (Meteor.isDevelopment) console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
             if (Meteor.isDevelopment) console.log('count', instance.autoTable.collection.find(query).count())
-            return (instance.autoTable.collection.find(query).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
+            showMore = (instance.autoTable.collection.find(query).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
         } else {
-            return (instance.autoTable.collection.find(query, {
+            showMore = (instance.autoTable.collection.find(query, {
                 sort: instance.sort.get(),
                 limit: instance.limit.get(),
             }).count() === instance.limit.get())
         }
+        instance.allin = !showMore && !Template.instance().filtered.get()
     }
     ,
     sort(sort)
