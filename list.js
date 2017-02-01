@@ -8,16 +8,21 @@ import "./auto-table.css"
 import "./list.html"
 import "./loading.html"
 import "./filter"
-import "./import"
 import {_} from 'lodash'
 
 const defaultLimit = 25
 
 const areDifferents = function (coll1, coll2) {
-    if (coll1.length != coll2.length)
+    coll1=_.omitBy(coll1, _.isNil);
+    coll2=_.omitBy(coll2, _.isNil);
+    if (coll1.length != coll2.length) {
+        console.log('1', coll1.length, coll2.length)
         return true
+
+    }
     for (let i = 0; i < coll1.length; i++) {
         if (!_.isEqual(coll1[i], coll2[i])) {
+            console.log('2', coll1[i], coll2[i])
             return true
         }
     }
@@ -65,8 +70,8 @@ Template.atTable.onCreated(function () {
     })
 
 });
-export const  tryParseJSON =function(jsonString){
-    if (typeof jsonString!='string') return false
+export const tryParseJSON = function (jsonString) {
+    if (typeof jsonString != 'string') return false
     try {
         var o = JSON.parse(jsonString);
         if (o && typeof o === "object") {
@@ -97,19 +102,19 @@ export const createFilter = function (columns, schema) {
         const operator = column.operator
         if (val !== '' && val !== null && val !== undefined) {
             //for any JSON value forget about the operator and use the object
-            const queryObj=tryParseJSON(val)
+            const queryObj = tryParseJSON(val)
 
-            if ( queryObj ){
-                    console.log('queryObj',queryObj)
-                _.merge(filters,queryObj)
-            }else{
+            if (queryObj) {
+                console.log('queryObj', queryObj)
+                _.merge(filters, queryObj)
+            } else {
                 selector[operator] = val
-                if (operator == '$exists'){
-                    if (val instanceof Date && val.getTime()==AutoForm.valueConverters.stringToDate("0").getTime()){
-                        val=false
+                if (operator == '$exists') {
+                    if (val instanceof Date && val.getTime() == AutoForm.valueConverters.stringToDate("0").getTime()) {
+                        val = false
                     }
-                    if (typeof val =='string' && val=="0"){
-                        val=false
+                    if (typeof val == 'string' && val == "0") {
+                        val = false
                     }
                     selector[operator] = !!val
                 }
@@ -197,6 +202,7 @@ Template.atTable.helpers({
         return (typeof template == 'string')
     },
     render: function (obj, column) {
+        //console.log('Template.instance().autoTable.columns',Template.instance().autoTable.columns,column.key)
         const render = _.find(Template.instance().autoTable.columns, {key: column.key}).render
         const path = column.key
         const val = path.split('.').reduce(function (prev, curr) {
@@ -215,7 +221,7 @@ Template.atTable.helpers({
     rows: () => {
         const instance = Template.instance()
         let query = instance.query.get() //
-        for (var attrname in instance.data.customQuery) { query[attrname] = instance.data.customQuery[attrname];}
+        //for (var attrname in instance.data.customQuery) { query[attrname] = instance.data.customQuery[attrname];}
         const cursor = instance.autoTable.collection.find(query, {
             sort: instance.sort.get(),
             limit: instance.limit.get(),
@@ -241,10 +247,10 @@ Template.atTable.helpers({
         const instance = Template.instance();
         let query = instance.query.get()
         if (instance.autoTable.settings.options.showing) {
-            return (instance.autoTable.collection.find(query, {
-                sort: instance.sort.get(),
-                limit: instance.limit.get(),
-            }).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
+            console.log('query',query)
+            console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id) )
+            console.log('count', instance.autoTable.collection.find(query).count()  )
+            return (instance.autoTable.collection.find(query).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
         } else {
             return (instance.autoTable.collection.find(query, {
                 sort: instance.sort.get(),
@@ -271,9 +277,9 @@ Template.atTable.helpers({
 ;
 
 Template.atTable.events({
-    'click .buttonImport'(e,instace){
+    'click .buttonImport'(e, instance){
         console.log(e)
-        Blaze.renderWithData(Template.atImport,{columns: instace.autoTable.columns},$('body').get(0))
+        Blaze.renderWithData(Template.atImport, {columns: instance.autoTable.columns}, $('body').get(0))
     },
     'change input[name="columns"]'(e, instance){
         let columns = instance.columns.get()

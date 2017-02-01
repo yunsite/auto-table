@@ -10,12 +10,12 @@
 
 
         <div class="{{settings.klass.buttonColumnWrapper}}">
-            {{#if settings.options.import}}
-            <button type="button" class="{{settings.klass.buttonImport}} buttonImport"
+            {{#each settings.options.buttons}}
+            <button type="button" class="{{klass}}"
                     aria-haspopup="true" aria-expanded="false">
-                {{settings.msg.buttonImport}}
+                {{{msg}}}
             </button>
-            {{/if}}
+            {{/each}}
             {{#if settings.options.columnsDisplay}}
                 <button type="button" class="{{settings.klass.buttonColumn}} " data-toggle="dropdown"
                         aria-haspopup="true" aria-expanded="false">

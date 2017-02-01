@@ -39,7 +39,8 @@ export class AutoTable {
                 columnsDisplay: false,
                 showing: false,
                 filters: false,
-                import: false,
+                buttons: [],
+
             },
             msg: {
                 columns: 'Columns',
@@ -53,7 +54,6 @@ export class AutoTable {
                 noRecords: 'There are not records',
                 noRecordsCriteria: 'There are not records with this criteria',
                 hiddenFilter: '(hidden filters)',
-                buttonImport: 'Import'
             },
             klass: {
                 hiddenFilter: 'small danger',
@@ -78,14 +78,11 @@ export class AutoTable {
                 showing: 'col-xs-12 text-right small',
                 noRecordsWrapper: ' text-center noRecordsWrapper ',
                 noRecords: 'noRecords',
-                buttonImport: 'btn btn-default',
             },
         }
             this.settings = _.defaultsDeep(_.clone(settings), defaults)
 
-        if ( this.settings.options.import && !Package['cesarve:auto-import']) {
-            throw new Meteor.Error('You need to add cesarve:auto.import to use import option')
-        }
+
         if (!schema && this.settings.options.filters) throw new Meteor.Error('schema parameter is required when filter option is on')
         columns = _.map(columns, (column) => {
             if (!column.label && this.schema) {
