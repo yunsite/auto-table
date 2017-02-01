@@ -13,16 +13,11 @@ import {_} from 'lodash'
 const defaultLimit = 25
 
 const areDifferents = function (coll1, coll2) {
-    coll1=_.omitBy(coll1, _.isNil);
-    coll2=_.omitBy(coll2, _.isNil);
     if (coll1.length != coll2.length) {
-        console.log('1', coll1.length, coll2.length)
         return true
-
     }
     for (let i = 0; i < coll1.length; i++) {
-        if (!_.isEqual(coll1[i], coll2[i])) {
-            console.log('2', coll1[i], coll2[i])
+        if (!_.isEqual(_.omitBy(coll1[i], _.isNil), _.omitBy(coll2[i], _.isNil))) {
             return true
         }
     }
@@ -37,8 +32,8 @@ Template.atTable.onCreated(function () {
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
     this.sessionName = `${this.autoTable.id}${userId}`
     this.columns = new PersistentReactiveVar('columns' + this.sessionName, this.autoTable.columns)
-    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
-    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operator', 'operators'))
+    let storedColumns = _.map(this.columns.get(), (val) => _.pick(val, 'key', 'label', 'template', 'operators'))
+    let newColumns = _.map(this.autoTable.columns, (val) => _.pick(val, 'key', 'label', 'template', 'operators'))
     newColumns = _.sortBy(newColumns, 'key')
     storedColumns = _.sortBy(storedColumns, 'key')
     if (areDifferents(storedColumns, newColumns)) {
@@ -247,9 +242,9 @@ Template.atTable.helpers({
         const instance = Template.instance();
         let query = instance.query.get()
         if (instance.autoTable.settings.options.showing) {
-            console.log('query',query)
-            console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id) )
-            console.log('count', instance.autoTable.collection.find(query).count()  )
+            console.log('query', query)
+            console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
+            console.log('count', instance.autoTable.collection.find(query).count())
             return (instance.autoTable.collection.find(query).count() < Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
         } else {
             return (instance.autoTable.collection.find(query, {
