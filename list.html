@@ -70,7 +70,7 @@
                     {{#each  rows}}
                         <tr>
                             {{#each column in columns}}
-                                <a class="td {{settings.klass.link}}" href="{{link . column.key}}"
+                                <a class="td {{../settings.klass.link}}" href="{{link . column.key}}"
                                    style="{{#if column.invisible}}display: none{{/if}}">
                                     {{#if isTemplate column.template}}
                                         {{> Template.dynamic template=column.template}}
