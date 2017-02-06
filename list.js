@@ -69,7 +69,7 @@ Template.atTable.onCreated(function () {
     this.sort = new PersistentReactiveVar('sort' + this.sessionName, {});
     this.autorun(() => {
         //if (!this.allin) {
-            this.autoTable.setSubscriptionReady(false)
+        this.autoTable.setSubscriptionReady(false)
         //}
         const filters = this.autoTable.schema ? createFilter(this.columns.get(), this.autoTable.schema) : {}
         this.autoTable.filters = filters
@@ -83,14 +83,14 @@ Template.atTable.onCreated(function () {
         if (Meteor.isDevelopment) console.log('autotable sort', this.sort.get())
         const limit = this.limit.get()
         //if (!this.allin) {
-            this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
-                onReady: () => {
-                    this.showingMore.set(false)
-                    this.autoTable.setSubscriptionReady(true)
+        this.subscribe('atPubSub', this.autoTable.id, this.limit.get(), filters, this.sort.get(), {
+            onReady: () => {
+                this.showingMore.set(false)
+                this.autoTable.setSubscriptionReady(true)
 
-                }
+            }
 
-            })
+        })
         //}
     })
 
@@ -134,9 +134,9 @@ export const createFilter = function (columns, schema) {
                 console.log('queryObj', queryObj)
                 _.merge(filters, queryObj)
             } else {
-                if (val instanceof Date ) {
+                if (val instanceof Date) {
                     selector[operator] = moment(val).startOf('day').toDate()
-                }else{
+                } else {
                     selector[operator] = val
                 }
 
@@ -155,7 +155,7 @@ export const createFilter = function (columns, schema) {
 
         }
     }
-    console.log('createFilter',filters)
+    console.log('createFilter', filters)
     return filters
 }
 Template.atTable.onRendered(function () {
@@ -233,8 +233,7 @@ Template.atTable.helpers({
     isTemplate: function (template) {
         return (typeof template == 'string')
     },
-    render: function (obj, column) {
-        //console.log('Template.instance().autoTable.columns',Template.instance().autoTable.columns,column.key)
+    render: function (obj, column) {        //console.log('Template.instance().autoTable.columns',Template.instance().autoTable.columns,column.key)
         const render = _.find(Template.instance().autoTable.columns, {key: column.key}).render
         const path = column.key
         const val = path.split('.').reduce(function (prev, curr) {
