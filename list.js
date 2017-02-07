@@ -290,6 +290,7 @@ Template.atTable.helpers({
             }).count() === instance.limit.get())
         }
         instance.allin = !showMore && !Template.instance().filtered.get()
+        return showMore
     }
     ,
     sort(sort)
