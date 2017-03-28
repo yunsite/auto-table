@@ -1399,3 +1399,7 @@ table th[class*="col-"] {
 .atTable .table {
     margin-bottom: 0%;
 }
+
+.table-group{
+    display: table-row-group;
+}

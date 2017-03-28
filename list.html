@@ -61,10 +61,10 @@
                         </th>
                     {{/each}}
                 </tr>
+                </thead>
                 {{#if settings.options.filters}}
                     {{>atFilter id=id columnsReactive=columnsReactive settings=settings}}
                 {{/if}}
-                </thead>
                 <tbody>
                 {{#transition in=settings.klass.transitionIn out=settings.klass.transitionOut}}
                     {{#each  rows}}
