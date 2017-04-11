@@ -1,5 +1,5 @@
 <template name="atFilter">
-
+    <div class="table-group">
     {{#autoForm  id=id  schema=schema type="normal" autosaveOnKeyup=true trimStrings=false autoConvert=false keyup=1250}}
         {{#each columns}}
 
@@ -38,4 +38,5 @@
             </td>
         {{/each}}
     {{/autoForm}}
+    </div>
 </template>
