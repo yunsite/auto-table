@@ -48,8 +48,15 @@ const areDifferents = function (newColumns) {
 Template.atTable.onCreated(function () {
     //todo set limit from data or settings
     this.allin = false
-    if (!this.data.at) throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
-    if (!this.data.at instanceof AutoTable) throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
+
+    if (!this.data.at){
+        console.log(this.data)
+        throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
+    }
+    if (!this.data.at instanceof AutoTable) {
+        console.log(this.data)
+        throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
+    }
     this.autoTable = this.data.at
     this.showingMore = new ReactiveVar(false)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
@@ -316,6 +323,7 @@ Template.atTable.events({
     },
     'click .clearFilter'(e, instance){
         $('#' + instance.autoTable.id).find('[data-schema-key]').val('')
+        $('#' + instance.autoTable.id).find('[data-schema-key] input[type="checkbox"]:checked').click()
         $('#' + instance.autoTable.id).submit()
     },
     'click .buttonExport'(e, instance){
