@@ -10,7 +10,7 @@ let SimpleSchema = {}
 export class AutoTable {
     constructor({id, collection, columns, schema, query = {}, settings = {}, publish = () => true, link = () => '#', publishExtraFields = [], publishExtraCollection}) {
         this.publishExtraFields = publishExtraFields
-        this.publishExtraCollection=publishExtraCollection
+        this.publishExtraCollection = publishExtraCollection
         if (!id) throw new Meteor.Error('id parameter is required')
         if (!collection) throw new Meteor.Error('collection parameter is required')
 
@@ -26,7 +26,7 @@ export class AutoTable {
         check(settings, Object)
         check(query, Object)
         this.id = id
-        this.subsReadyVar=new ReactiveVar(false)
+        this.subsReadyVar = new ReactiveVar(false)
         this.collection = collection
         this.schema = schema
         this.query = query
@@ -41,7 +41,7 @@ export class AutoTable {
                 filters: false,
                 buttons: [],
                 export: false,
-
+                settings: true,
             },
             msg: {
                 columns: 'Columns',
@@ -57,6 +57,7 @@ export class AutoTable {
                 hiddenFilter: '(hidden filters)',
                 export: 'Export',
                 exportFile: 'file',
+                settings: 'Settings',
                 clearFilter: 'Clear filter'
             },
             klass: {
@@ -84,11 +85,12 @@ export class AutoTable {
                 showing: 'col-xs-12 text-right small',
                 noRecordsWrapper: ' text-center noRecordsWrapper ',
                 noRecords: 'noRecords',
-                buttonExport:'btn btn-default',
-                exportSpinner:  'fa-spinner fa-spin fa-fw'
+                buttonExport: 'btn btn-default',
+                exportSpinner: 'fa-spinner fa-spin fa-fw',
+                buttonSettings: 'btn btn-default dropdown-toggle ',
             },
         }
-            this.settings = _.defaultsDeep(_.clone(settings), defaults)
+        this.settings = _.defaultsDeep(_.clone(settings), defaults)
 
 
         if (!schema && this.settings.options.filters) throw new Meteor.Error('schema parameter is required when filter option is on')
@@ -107,10 +109,10 @@ export class AutoTable {
             label: Match.Maybe(String),
             key: Match.Optional(String),
             template: Match.Optional(String),
-            templateData:  Match.Optional(Function),
+            templateData: Match.Optional(Function),
             invisible: Match.Maybe(Boolean),
-            operator:  Match.Optional(Match.OneOf(String,null)),
-            render: Match.Optional(Match.OneOf(Function,Object,String)),
+            operator: Match.Optional(Match.OneOf(String, null)),
+            render: Match.Optional(Match.OneOf(Function, Object, String)),
             operators: Match.Optional([{
                 label: String,
                 shortLabel: String,
@@ -126,14 +128,48 @@ export class AutoTable {
         AutoTable.instances.push(this)
 
     }
-    setSubscriptionReady(value){
+
+    setSubscriptionReady(value) {
         this.subsReadyVar.set(value)
     }
-    subscriptionReady(){
+
+    subscriptionReady() {
         return this.subsReadyVar.get()
     }
 }
 AutoTable.getInstance = function (id) {
     return _.find(this.instances, {id})
 }
+AutoTable.collection = new Mongo.Collection('atSettings')
 
+Meteor.methods({
+    settingNew(atId, name, columns){
+        check(atId, String)
+        check(name, String)
+        check(columns, [Object])
+        const userId = this.userId
+        if (!userId) throw new Meteor.Error('403', 'You must to be logged')
+        return AutoTable.collection.insert({atId, userId, name, columns})
+    },
+    settingsRemove(_id){
+        check(_id, String)
+        const userId = this.userId
+        if (!userId) throw new Meteor.Error('403', 'You must to be logged')
+        return AutoTable.collection.remove({_id, userId})
+    },
+    settingUpdate(_id, columns){
+        check(_id, String)
+        check(columns, [Object])
+        const userId = this.userId
+        if (!userId) throw new Meteor.Error('403', 'You must to be logged')
+        return AutoTable.collection.update(_id, {$set: {columns}})
+    },
+    settingsDefault(_id){
+        check(_id, String)
+        let userId = this.userId
+        if (!Roles.userIsInRole(userId, 'admin')) throw new Meteor.Error('403', 'You must have administrator level')
+        const settings = AutoTable.collection.findOne(_id)
+        if (settings.userId) userId = null //toggle userId
+        return AutoTable.collection.update(_id, {$set: {userId}})
+    },
+})

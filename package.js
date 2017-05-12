@@ -8,7 +8,7 @@ Package.describe({
 
 Package.onUse(function (api) {
     api.versionsFrom('1.4.2');
-    api.use(['ecmascript','underscore','check']);
+    api.use(['ecmascript','underscore','check','mongo']);
     api.use(['templating', 'cesarve:persistent-reactive-var','webtempest:animate','reactive-var'], 'client');
     api.use(['tmeasday:publish-counts'], ['client', 'server'], {weak: true})
     api.use(['aldeed:autoform','aldeed:simple-schema','cesarve:auto-import'], ['client'], {weak: true})

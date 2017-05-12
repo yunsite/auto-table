@@ -1,4 +1,5 @@
 import "./filter.html"
+import "./settings"
 import {AutoTable} from "./auto-table"
 import {PersistentReactiveVar} from "meteor/cesarve:persistent-reactive-var"
 import {AutoForm} from "meteor/aldeed:autoform"

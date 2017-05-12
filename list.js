@@ -166,6 +166,8 @@ export const createFilter = function (columns, schema) {
     return filters
 }
 Template.atTable.onRendered(function () {
+
+
     let first = true
     if (this.autoTable.settings.options.columnsSort) {
         this.autorun(() => {

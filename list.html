@@ -24,7 +24,7 @@
             {{#if settings.options.export}}
                 <button type="button" class="{{settings.klass.buttonExport}} buttonExport "
                         aria-haspopup="true" aria-expanded="false">
-                    {{settings.msg.export}} <i></i>
+                    {{settings.msg.export}}
                 </button>
             {{/if}}
             {{#if settings.options.columnsDisplay}}
@@ -41,6 +41,10 @@
                     {{/each}}
                 </ul>
             {{/if}}
+            {{#if settings.options.settings}}
+                {{>atSettings at=at columnsReactive=columnsReactive}}
+
+        {{/if}}
         </div>
         <div class="clearfix"></div>
         <div class="{{settings.klass.tableWrapper}}" style="overflow-y: visible">

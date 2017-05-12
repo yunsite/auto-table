@@ -165,3 +165,9 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     return publications
 
 })
+
+Meteor.publish('atSettings', function (atId) {
+    check(atId, String)
+    if (!this.userId) return this.ready()
+    return AutoTable.collection.find({atId, $or: [{userId: this.userId}, {userId: null}]})
+})

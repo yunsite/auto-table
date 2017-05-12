@@ -1,0 +1,41 @@
+<template name="atSettings">
+    {{#if currentUser}}
+        <div class="btn-group buttonSettings input-group  {{#if isInRole 'admin'}}settingsAdmin {{/if}} ">
+            <button type="button" class="{{at.settings.klass.buttonSettings}}  "
+                    data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                {{at.settings.msg.settings}}  <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-right">
+                {{#unless isInRole 'admin'}}
+                    {{#each defaults}}
+                        <li><a href="#" class="settingsSet {{#if lastSetting}}bold{{/if}} ">{{name}}</a>
+                        </li>
+                    {{/each}}
+                    <li role="separator" class="divider"></li>
+                {{/unless}}
+                {{#each mySettings}}
+                    <li><a href="#" class="settingsSet {{#if lastSetting}}bold{{/if}} ">{{name}}
+                        <i class="fa fa-floppy-o settingUpdate text-primary"></i>
+                        <i class="fa fa-trash settingsRemove text-danger"></i>
+                        {{#if isInRole 'admin'}}
+                            <i class="fa fa-users settingsDefault {{#if isDefault}}isDefault{{/if}} text-warning"></i>
+                        {{/if}}
+                    </a>
+                    </li>
+                {{/each}}
+                {{#if mySettings.count}}
+                    <li role="separator" class="divider"></li>
+                {{/if}}
+
+                <li>
+                    <a href="#" class="settingNew">Save this settings</a>
+                    <input value="" name="settingNew" class="form-control" placeholder="Descriptive name"
+                           style="display: none">
+                </li>
+            </ul>
+        </div>
+
+
+    {{/if}}
+</template>
