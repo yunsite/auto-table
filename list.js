@@ -49,7 +49,7 @@ Template.atTable.onCreated(function () {
     //todo set limit from data or settings
     this.allin = false
 
-    if (!this.data.at){
+    if (!this.data.at) {
         console.log(this.data)
         throw new Meteor.Error(400, 'Missing parameter', 'at parameter no present')
     }
@@ -237,7 +237,7 @@ Template.atTable.helpers({
     },
     showingMore: () => Template.instance().showingMore.get(),
     columnsReactive: () => Template.instance().columns,
-    settings: () => Template.instance().autoTable.settings,
+    settings: () =>  Template.instance().data.settings || Template.instance().autoTable.settings,
     id: () => Template.instance().autoTable.id,
     isTemplate: function (template) {
         return (typeof template == 'string')
