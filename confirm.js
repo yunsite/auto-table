@@ -23,7 +23,6 @@ Template.atConfirm.onRendered(function () {
 });
 
 Template.atConfirm.onDestroyed(function () {
-   console.log('Template.atConfirm.onDestroyed')
 });
 
 export const confirm=function({content, onConfirm}){

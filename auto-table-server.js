@@ -115,7 +115,7 @@ Meteor.methods({
 })
 
 Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
-    if (Meteor.isDevelopment) console.log('atPubSub', id, query)
+
     let time = new Date().getTime()
     check(id, String)
     check(limit, Number)
@@ -163,6 +163,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         publications = publications.concat(autoTable.publishExtraCollection.call(this, cursor))
     }
     return publications
+    if (Meteor.isDevelopment) console.log('atPubSub', id, new Date().getTime() - time)
 
 })
 
