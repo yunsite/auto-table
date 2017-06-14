@@ -105,21 +105,28 @@ export class AutoTable {
         })
 
         this.columns = columns
-        check(columns, [{
-            label: Match.Maybe(String),
-            key: Match.Optional(String),
-            template: Match.Optional(String),
-            templateData: Match.Optional(Function),
-            invisible: Match.Maybe(Boolean),
-            operator: Match.Optional(Match.OneOf(String, null)),
-            render: Match.Optional(Match.OneOf(Function, Object, String)),
-            operators: Match.Optional([{
-                label: String,
-                shortLabel: String,
-                operator: String,
-                options: Match.Optional(Array)
+        try{
+            check(columns, [{
+                label: Match.Maybe(String),
+                key: Match.Optional(String),
+                template: Match.Optional(String),
+                templateData: Match.Optional(Function),
+                invisible: Match.Maybe(Boolean),
+                operator: Match.Optional(Match.OneOf(String, null)),
+                render: Match.Optional(Match.OneOf(Function, Object, String)),
+                operators: Match.Optional([{
+                    label: String,
+                    shortLabel: String,
+                    operator: String,
+                    options: Match.Optional(Array)
+                }])
             }])
-        }])
+        }catch(e){
+            console.error(e)
+            console.log(id)
+            console.log(columns)
+        }
+
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')
         if (this.settings.options.filters && !Package['aldeed:autoform']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:autoform package')
         if (this.settings.options.columnsSort && Meteor.isClient && !$.ui && !$.ui.sortable) throw new Meteor.Error('Missing package', 'Columns sort option need Jquery UI sortable installed')

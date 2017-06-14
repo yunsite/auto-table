@@ -2,7 +2,7 @@ import './auto-table'
 import {AutoTable} from "./auto-table"
 import {_} from 'lodash'
 import json2csv from 'json2csv'
-
+import {getFields} from './util'
 export class Exporter {
     constructor(userId) {
         this.export = {}
@@ -36,6 +36,9 @@ export class Exporter {
     }
 
 }
+
+
+
 Meteor.methods({
     'autoTable.export': function (id, query, sort, columns) {
         const userId = this
@@ -46,15 +49,9 @@ Meteor.methods({
         if (!Roles.userIsInRole(this.userId, 'admin')) {
             throw new Meteor.Error(403, 'Access forbidden', 'Only admin can export data base')
         }
-        let fields = _.map(autoTable.columns, 'key')
-        const publishExtraFields = autoTable.publishExtraFields || []
-        fields = fields.concat(publishExtraFields)
-        fields = _.map(fields, (field) => {
-            //todo remove this, when $ field operator restricion have been removed
-            // see https://docs.meteor.com/api/collections.html#fieldspecifiers
-            return field.split('.')[0]
-        })
-        fields = _.zipObject(fields, _.fill(Array(fields.length), true))
+
+        const fields=getFields(autoTable.columns,publishExtraFields)
+
         if (!_.isEmpty(autoTable.query)) {
             const autoTableQuery = _.cloneDeep(autoTable.query)
             query = _.defaultsDeep(autoTableQuery, query)
@@ -127,15 +124,10 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         console.error('Can\'t find AutoTable instance for id ' + id + ', be sure you declare the instance in a share code (client and server side)')
         throw new Meteor.Error('Can\'t find AutoTable instance, be sure you declare the instance in a share code (client and server side)')
     }
-    let fields = _.map(autoTable.columns, 'key')
-    const publishExtraFields = autoTable.publishExtraFields || []
-    fields = fields.concat(publishExtraFields)
-    fields = _.map(fields, (field) => {
-        //todo remove this, when $ field operator restricion have been removed
-        // see https://docs.meteor.com/api/collections.html#fieldspecifiers
-        return field.split('.')[0]
-    })
-    fields = _.zipObject(fields, _.fill(Array(fields.length), true))
+
+
+    const projection=getFields(autoTable.columns,autoTable.publishExtraFields)
+
     if (!_.isEmpty(autoTable.query)) {
         const autoTableQuery = _.cloneDeep(autoTable.query)
         query = _.defaultsDeep(autoTableQuery, query)
@@ -157,7 +149,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
         Counts = Counts.Counts
         Counts.publish(this, 'atCounter' + id, autoTable.collection.find(query, {limit, sort}), {noReady: true});
     }
-    const cursor = autoTable.collection.find(query, {fields, sort, limit})
+    const cursor = autoTable.collection.find(query, {fields: projection, sort, limit})
     let publications = [cursor]
     if (typeof autoTable.publishExtraCollection == 'function') {
         publications = publications.concat(autoTable.publishExtraCollection.call(this, cursor))
