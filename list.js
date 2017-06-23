@@ -57,6 +57,14 @@ Template.atTable.onCreated(function () {
         console.log(this.data)
         throw new Meteor.Error(400, 'Wrong parameter', 'at parameter has to be  autoTable instance')
     }
+
+    /**settings from data***/
+    let settings = this.data.settings || this.data.at.settings
+    if (typeof settings == 'function') settings = settings()
+    this.settings = _.defaultsDeep(settings, this.data.at.settings)
+
+
+
     this.autoTable = this.data.at
     this.showingMore = new ReactiveVar(false)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
@@ -169,7 +177,7 @@ Template.atTable.onRendered(function () {
 
 
     let first = true
-    if (this.autoTable.settings.options.columnsSort) {
+    if (this.settings.options.columnsSort) {
         this.autorun(() => {
             if (this.subscriptionsReady() && first) {
                 first = false
@@ -237,7 +245,8 @@ Template.atTable.helpers({
     },
     showingMore: () => Template.instance().showingMore.get(),
     columnsReactive: () => Template.instance().columns,
-    settings: () =>  Template.instance().data.settings || Template.instance().autoTable.settings,
+    settings: () => Template.instance().settings,
+
     id: () => Template.instance().autoTable.id,
     isTemplate: function (template) {
         return (typeof template == 'string')
@@ -277,17 +286,18 @@ Template.atTable.helpers({
     },
     total: function () {
         const instance = Template.instance();
-        if (instance.autoTable.settings.options.showing) {
+        if (instance.settings.options.showing) {
             return Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id)
         }
 
     }
+
     ,
     showMore: function () {
         const instance = Template.instance();
         let query = instance.query.get()
         let showMore
-        if (instance.autoTable.settings.options.showing) {
+        if (instance.settings.options.showing) {
             if (Meteor.isDevelopment) console.log('query', query)
             if (Meteor.isDevelopment) console.log('atCounter', Package['tmeasday:publish-counts'].Counts.get('atCounter' + instance.autoTable.id))
             if (Meteor.isDevelopment) console.log('count', instance.autoTable.collection.find(query).count())
@@ -310,9 +320,9 @@ Template.atTable.helpers({
         const sortKey = Object.keys(sortObj)[0];
         if (sort == sortKey) {
             if (sortObj[sortKey] > 0) {
-                return instance.autoTable.settings.msg.sort.asc
+                return instance.settings.msg.sort.asc
             } else {
-                return instance.autoTable.settings.msg.sort.desc
+                return instance.settings.msg.sort.desc
             }
         }
     }
@@ -331,22 +341,22 @@ Template.atTable.events({
     'click .buttonExport'(e, instance){
         e.preventDefault();
         if ($('.showMore').length == 0) {
-            exportTableToCSV(instance.$('table'), instance.autoTable.settings.msg.exportFile)
+            exportTableToCSV(instance.$('table'), instance.settings.msg.exportFile)
         } else {
 
-            $('.buttonExport i').addClass(instance.autoTable.settings.klass.exportSpinner);
+            $('.buttonExport i').addClass(instance.settings.klass.exportSpinner);
             const query = instance.query.get()
             const sort = instance.sort.get()
             const columns = instance.columns.get()
             Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
                 const blob = new Blob([file], {type: "text/csv;charset=utf-8"});
-                $('.export i').removeClass(instance.autoTable.settings.klass.exportSpinner);
+                $('.export i').removeClass(instance.settings.klass.exportSpinner);
                 if (err) {
                     //todo
                     console.error(err)
                     return
                 }
-                saveAs(blob, instance.autoTable.settings.msg.exportFile, '.csv')
+                saveAs(blob, instance.settings.msg.exportFile, '.csv')
             })
         }
 
@@ -435,3 +445,6 @@ function getText(n) {
     return rv;
 
 };
+
+
+
