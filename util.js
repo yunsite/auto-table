@@ -34,7 +34,6 @@ const removeChildKey = function (o) {
     for (const key1 of a) {
         for (const key2 of a) {
             if (key1 !== key2 && (key1).indexOf(key2 + ".") == 0) {
-                console.log(key1,key2   )
                 delete o[key1]
             }
         }
@@ -56,3 +55,5 @@ export const getFields=function(columns,extraFields){
     return projection
 
 }
+
+

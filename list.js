@@ -215,6 +215,7 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
+    classFormat:(str)=>str.replace(/\./gi,'-'),
     link(row, key){
         return Template.instance().autoTable.link(row, key)
     },
