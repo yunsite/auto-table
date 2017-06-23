@@ -33,25 +33,18 @@ const removeChildKey = function (o) {
     a = Object.keys(o)
     for (const key1 of a) {
         for (const key2 of a) {
-            if (key1 !== key2 && (key1 + ".").indexOf(key2) == 0) {
+            if (key1 !== key2 && (key1).indexOf(key2 + ".") == 0) {
+                console.log(key1,key2   )
                 delete o[key1]
             }
         }
     }
-
     return o
 }
 
 
 export const getFields=function(columns,extraFields){
-    /*let fields = _.map(columns, 'key')
-     fields = fields.concat(extraFields)
-     fields = _.map(fields, (field) => {
-     //todo remove this, when $ field operator restricion have been removed
-     // see https://docs.meteor.com/api/collections.html#fieldspecifiers
-     return field.split('.')[0]
-     })
-     fields = _.zipObject(fields, _.fill(Array(fields.length), true))*/
+
 
     let fields = _.map(columns, 'key')
     fields = fields.concat(extraFields)
