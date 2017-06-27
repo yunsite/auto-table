@@ -68,12 +68,17 @@ Template.atSettings.events({
     'click .settingUpdate'(e, instance){
         e.preventDefault()
         e.stopPropagation()
+        console.log('settingUpdate')
         if (Template.instance().lastSetting.get() != this._id) {
             confirm({
                 content: 'Are you sure you want to overwrite this item',
                 onConfirm: () => Meteor.call('settingUpdate', this._id, instance.data.columnsReactive.get(), (err, res) => {
                     if (res) instance.lastSetting.set(this._id)
                 })
+            })
+        }else{
+            Meteor.call('settingUpdate', this._id, instance.data.columnsReactive.get(), (err, res) => {
+                if (res) instance.lastSetting.set(this._id)
             })
         }
     },
