@@ -9,7 +9,7 @@ import "./list.html"
 import "./loading.html"
 import "./filter"
 import {_} from 'lodash'
-import {saveAs} from 'node-safe-filesaver'
+
 
 const defaultLimit = 50
 /*
@@ -350,14 +350,11 @@ Template.atTable.events({
             const sort = instance.sort.get()
             const columns = instance.columns.get()
             Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
-                const blob = new Blob([file], {type: "text/csv;charset=utf-8"});
-                $('.export i').removeClass(instance.settings.klass.exportSpinner);
-                if (err) {
-                    //todo
-                    console.error(err)
-                    return
-                }
-                saveAs(blob, instance.settings.msg.exportFile, '.csv')
+                var anchor = document.createElement('a');
+                anchor.href = '/download/' + file;
+                anchor.target = '_blank';
+                anchor.download = instance.settings.msg.exportFile + '.xlsx';
+                anchor.click();
             })
         }
 

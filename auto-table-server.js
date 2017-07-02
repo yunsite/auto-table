@@ -1,8 +1,9 @@
 import './auto-table'
 import {AutoTable} from "./auto-table"
 import {_} from 'lodash'
-import json2csv from 'json2csv'
+
 import {getFields} from './util'
+const Excel = require('exceljs')
 export class Exporter {
     constructor(userId) {
         this.export = {}
@@ -38,9 +39,13 @@ export class Exporter {
 }
 
 
-
 Meteor.methods({
-    'autoTable.export': function (id, query, sort, columns) {
+    'autoTable.export': async function (id, query, sort, columns) {
+
+        const workbook = new Excel.Workbook();
+        const worksheet = workbook.addWorksheet('My Sheet', {
+            pageSetup: {orientation: 'landscape'}
+        });
         const userId = this
 
         const autoTable = AutoTable.getInstance(id)
@@ -50,7 +55,7 @@ Meteor.methods({
             throw new Meteor.Error(403, 'Access forbidden', 'Only admin can export data base')
         }
 
-        const fields=getFields(autoTable.columns,publishExtraFields)
+        const fields = getFields(autoTable.columns, autoTable.publishExtraFields)
 
         if (!_.isEmpty(autoTable.query)) {
             const autoTableQuery = _.cloneDeep(autoTable.query)
@@ -63,50 +68,98 @@ Meteor.methods({
             throw new Meteor.Error(403, 'Access deny')
 
         }
-        let allData = []
+        let rows = []
         if (publication !== true) {
             const dataObj = exporter.get()
             for (const key in dataObj) {
-                allData = allData.concat(dataObj[key])
+                rows = rows.concat(dataObj[key])
             }
         } else {
-            allData = autoTable.collection.find(query, {fields, sort}).fetch()
+            rows = autoTable.collection.find(query, {fields, sort}).fetch()
         }
         //apply render function
         //and data onñy ewill be contain columns key
         const data = []
-        for (let i in allData) {
-            const obj = {}
-            for (const column of columns) {
+
+        let r = 2
+        let c = 1
+        const widths = {}
+        let excelRow = worksheet.getRow(1)
+        excelRow.height = 40
+        for (let column  of columns) {
+            const cell = excelRow.getCell(c)
+            cell.value = column.label
+            cell.font = {
+                bold: true,
+                size: 14
+            }
+            widths[c] = Math.max(widths[c] || 0, (column && column.label && column.label.length) || 0)
+            c++
+        }
+        const odd = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: {argb: 'EEEEEEEE'}
+            },
+            even = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: {argb: 'FFFFFFFF'}
+            },
+            border = {
+                top: {style: 'thin', color: {argb: '00000000'}},
+                left: {style: 'thin', color: {argb: '00000000'}},
+                bottom: {style: 'thin', color: {argb: '00000000'}},
+                right: {style: 'thin', color: {argb: '00000000'}}
+            },
+            border2 = {
+                top: {style: 'double', color: {argb: '00000000'}},
+                left: {style: 'double', color: {argb: '00000000'}},
+                bottom: {style: 'double', color: {argb: '00000000'}},
+                right: {style: 'double', color: {argb: '00000000'}}
+            };
+
+        for (let row of rows) {
+            excelRow = worksheet.getRow(r)
+            excelRow.height = 30
+            r++
+            c = 1
+            excelRow.fill = (r % 2 == 0) ? odd : even
+            for (let column  of columns) {
                 if (!column.invisible) {
                     const atColumn = _.find(autoTable.columns, {key: column.key})// find the same colum in the autotable declarion for get the render function (that is not in passed columns)
+                    let val
                     if (typeof atColumn.render == 'function') {
-                        let val = atColumn.render.call(allData[i], _.get(allData[i], column.key))
-                        if (typeof val == 'string') {
 
+                        val = atColumn.render.call(row, _.get(row, column.key))
+                        if (typeof val == 'string') {
                             val = val.replace(/<(?:.|\n)*?>/gm, ' ');
                         }
-
-                        _.set(obj, column.key, val)
+                        console.log(column.key, val)
                     } else {
-                        _.set(obj, column.key, _.get(allData[i], column.key))
+                        val = _.get(row, column.key)
                     }
+                    widths[c] = Math.max(widths[c] || 0, (val && val.toString().length) || 0)
+                    const cell = excelRow.getCell(c)
+                    cell.value = val
+                    cell.border = r == 1 ? border2 : border
+                    c++
+                    val = ''
                 }
             }
-            data.push(obj)
         }
-        const fieldsCsv = [];
-        for (let i in columns) {
-            if (!columns[i].invisible) {
-                fieldsCsv.push({
-                    label: columns[i].label,
-                    value: columns[i].key, // data.path.to.something
-                    default: '',
+        for (let c in widths) {
+            const col = worksheet.getColumn(parseInt(c))
+            col.width = Math.min(widths[c], 30)
+        }
 
-                })
-            }
-        }
-        return json2csv({data: data, fields: fieldsCsv});
+        console.log(process.env.PWD)
+        const file = Random.secret()
+        const result = await workbook.xlsx.writeFile(process.env.PWD + '/.xlsx/' + file)
+        Meteor.setTimeout(() => {
+            fs.unlink(process.env.PWD + '/.xlsx/' + file)
+        }, 1000 * 60 * 10)
+        return file
 
     }
 })
@@ -126,7 +179,7 @@ Meteor.publish('atPubSub', function (id, limit, query = {}, sort = {}) {
     }
 
 
-    const projection=getFields(autoTable.columns,autoTable.publishExtraFields)
+    const projection = getFields(autoTable.columns, autoTable.publishExtraFields)
 
     if (!_.isEmpty(autoTable.query)) {
         const autoTableQuery = _.cloneDeep(autoTable.query)
@@ -164,3 +217,35 @@ Meteor.publish('atSettings', function (atId) {
     if (!this.userId) return this.ready()
     return AutoTable.collection.find({atId, $or: [{userId: this.userId}, {userId: null}]})
 })
+
+const fs = require('fs')
+WebApp.connectHandlers
+    .use("/download/", function (req, res, next) {
+        const parts = req.url.split("/");
+        const file = parts[1]
+        if (!file) {
+            res.writeHead(404);
+            res.end();
+            return
+        }
+        console.log('file', file)
+        const workbook = new Excel.Workbook();
+        workbook.xlsx.readFile(process.env.PWD + '/.xlsx/' + file)
+            .then(function () {
+                res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                res.setHeader("Content-Disposition", "attachment; filename=" + "file.xlsx");
+                res.writeHead(200);
+                workbook.xlsx.write(res)
+                    .then(function () {
+                        res.end();
+                        fs.unlink(process.env.PWD + '/.xlsx/' + file)
+                    });
+            })
+            .catch(function (e) {
+                console.log(e)
+                res.writeHead(404);
+                res.end();
+            })
+
+
+    });
