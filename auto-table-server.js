@@ -135,7 +135,6 @@ Meteor.methods({
                         if (typeof val == 'string') {
                             val = val.replace(/<(?:.|\n)*?>/gm, ' ');
                         }
-                        console.log(column.key, val)
                     } else {
                         val = _.get(row, column.key)
                     }
@@ -153,7 +152,6 @@ Meteor.methods({
             col.width = Math.min(widths[c], 30)
         }
 
-        console.log(process.env.PWD)
         const file = Random.secret()
         const result = await workbook.xlsx.writeFile(process.env.PWD + '/.xlsx/' + file)
         Meteor.setTimeout(() => {

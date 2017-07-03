@@ -8,7 +8,7 @@ Package.describe({
 
 Package.onUse(function (api) {
     api.versionsFrom('1.4.2');
-    api.use(['ecmascript','underscore','check','mongo']);
+    api.use(['ecmascript','check','mongo']);
     api.use(['webapp'],'server');
     api.use(['templating', 'cesarve:persistent-reactive-var','webtempest:animate','reactive-var'], 'client');
     api.use(['tmeasday:publish-counts'], ['client', 'server'], {weak: true})
@@ -20,6 +20,7 @@ Package.onUse(function (api) {
 
 Npm.depends({
     'lodash':'4.17.2',
-    'json2csv': '3.7.3'
+    'json2csv': '3.7.3',
+    "exceljs": "0.4.13",
 
 })

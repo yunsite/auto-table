@@ -64,7 +64,6 @@ Template.atTable.onCreated(function () {
     this.settings = _.defaultsDeep(settings, this.data.at.settings)
 
 
-
     this.autoTable = this.data.at
     this.showingMore = new ReactiveVar(false)
     const userId = typeof Meteor.userId === "function" ? Meteor.userId() || '' : ''
@@ -215,7 +214,7 @@ Template.atTable.onDestroyed(function () {
 
 
 Template.atTable.helpers({
-    classFormat:(str)=>str.replace(/\./gi,'-'),
+    classFormat: (str) => str.replace(/\./gi, '-'),
     link(row, key){
         return Template.instance().autoTable.link(row, key)
     },
@@ -341,22 +340,19 @@ Template.atTable.events({
     },
     'click .buttonExport'(e, instance){
         e.preventDefault();
-        if ($('.showMore').length == 0) {
-            exportTableToCSV(instance.$('table'), instance.settings.msg.exportFile)
-        } else {
 
-            $('.buttonExport i').addClass(instance.settings.klass.exportSpinner);
-            const query = instance.query.get()
-            const sort = instance.sort.get()
-            const columns = instance.columns.get()
-            Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
-                var anchor = document.createElement('a');
-                anchor.href = '/download/' + file;
-                anchor.target = '_blank';
-                anchor.download = instance.settings.msg.exportFile + '.xlsx';
-                anchor.click();
-            })
-        }
+        $('.buttonExport i').addClass(instance.settings.klass.exportSpinner);
+        const query = instance.query.get()
+        const sort = instance.sort.get()
+        const columns = instance.columns.get()
+        Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
+            $('.buttonExport i').removeClass(instance.settings.klass.exportSpinner);
+            var anchor = document.createElement('a');
+            anchor.href = '/download/' + file;
+            anchor.target = '_blank';
+            anchor.download = instance.settings.msg.exportFile + '.xlsx';
+            anchor.click();
+        })
 
     },
     'change input[name="columns"]'(e, instance){
