@@ -9,7 +9,7 @@ import "./list.html"
 import "./loading.html"
 import "./filter"
 import {_} from 'lodash'
-
+import './export-form'
 
 const defaultLimit = 50
 /*
@@ -339,6 +339,9 @@ Template.atTable.events({
         $('#' + instance.autoTable.id).submit()
     },
     'click .buttonExport'(e, instance){
+
+        //Blaze.renderWithData(Template.atExportForm,{columns: instance.columns},instance.firstNode)
+
         e.preventDefault();
 
         $('.buttonExport i').addClass(instance.settings.klass.exportSpinner);
@@ -347,11 +350,14 @@ Template.atTable.events({
         const columns = instance.columns.get()
         Meteor.call('autoTable.export', instance.autoTable.id, query, sort, columns, (err, file) => {
             $('.buttonExport i').removeClass(instance.settings.klass.exportSpinner);
-            var anchor = document.createElement('a');
-            anchor.href = '/download/' + file;
-            anchor.target = '_blank';
-            anchor.download = instance.settings.msg.exportFile + '.xlsx';
-            anchor.click();
+            console.log(err,file)
+            if (!err) {
+                var anchor = document.createElement('a');
+                anchor.href = '/download/' + file;
+                anchor.target = '_blank';
+                anchor.download = instance.settings.msg.exportFile + '.xlsx';
+                anchor.click();
+            }
         })
 
     },

@@ -51,10 +51,6 @@ Meteor.methods({
         const autoTable = AutoTable.getInstance(id)
         //exportFamilies: function (query, order, columns) {
         this.unblock()
-        if (!Roles.userIsInRole(this.userId, 'admin')) {
-            throw new Meteor.Error(403, 'Access forbidden', 'Only admin can export data base')
-        }
-
         const fields = getFields(autoTable.columns, autoTable.publishExtraFields)
 
         if (!_.isEmpty(autoTable.query)) {
@@ -151,12 +147,16 @@ Meteor.methods({
             const col = worksheet.getColumn(parseInt(c))
             col.width = Math.min(widths[c], 30)
         }
-
         const file = Random.secret()
-        const result = await workbook.xlsx.writeFile(process.env.PWD + '/.xlsx/' + file)
+        const path=process.env.PWD + '/.xlsx/' + file
+        const now=new Date().getTime()
+        const result = await workbook.xlsx.writeFile(path)
+        console.log('time creating xls', new Date().getTime() - now )
         Meteor.setTimeout(() => {
-            fs.unlink(process.env.PWD + '/.xlsx/' + file)
-        }, 1000 * 60 * 10)
+            fs.unlink(path, (err) => {
+                if (!err) console.error('xls removed , some problem occurred removing before')
+            })
+        }, 1000 *  15)
         return file
 
     }
@@ -226,7 +226,7 @@ WebApp.connectHandlers
             res.end();
             return
         }
-        console.log('file', file)
+
         const workbook = new Excel.Workbook();
         workbook.xlsx.readFile(process.env.PWD + '/.xlsx/' + file)
             .then(function () {
@@ -235,14 +235,14 @@ WebApp.connectHandlers
                 res.writeHead(200);
                 workbook.xlsx.write(res)
                     .then(function () {
-                        res.end();
+                        res.end('2');
                         fs.unlink(process.env.PWD + '/.xlsx/' + file)
                     });
             })
             .catch(function (e) {
                 console.log(e)
                 res.writeHead(404);
-                res.end();
+                res.end('1');
             })
 
 

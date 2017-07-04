@@ -86,7 +86,7 @@ export class AutoTable {
                 noRecordsWrapper: ' text-center noRecordsWrapper ',
                 noRecords: 'noRecords',
                 buttonExport: 'btn btn-default',
-                exportSpinner: 'fa fa-spinner fa-spin fa-fw',
+                exportSpinner: 'fa-spinner fa-spin fa-fw',
                 buttonSettings: 'btn btn-default dropdown-toggle ',
             },
         }
@@ -127,8 +127,10 @@ export class AutoTable {
             console.log(columns)
         }
 
+        if (this.settings.options.export && !Package['aldeed:simple-schema']) throw new Meteor.Error('Missing package', 'To use export option you need to install aldeed:simple-schema package')
         if (this.settings.options.showing && !Package['tmeasday:publish-counts']) throw new Meteor.Error('Missing package', 'To use showing option you need to install tmeasday:publish-counts package')
         if (this.settings.options.filters && !Package['aldeed:autoform']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:autoform package')
+        if (this.settings.options.filters && !Package['aldeed:simple-schema']) throw new Meteor.Error('Missing package', 'To use filters option you need to install aldeed:simple-schema package')
         if (this.settings.options.columnsSort && Meteor.isClient && !$.ui && !$.ui.sortable) throw new Meteor.Error('Missing package', 'Columns sort option need Jquery UI sortable installed')
 
         AutoTable.instances = AutoTable.instances ? AutoTable.instances : []
