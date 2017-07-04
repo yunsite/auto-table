@@ -86,7 +86,7 @@ export class AutoTable {
                 noRecordsWrapper: ' text-center noRecordsWrapper ',
                 noRecords: 'noRecords',
                 buttonExport: 'btn btn-default',
-                exportSpinner: 'fa-spinner fa-spin fa-fw',
+                exportSpinner: 'fa fa-spinner fa-spin fa-fw',
                 buttonSettings: 'btn btn-default dropdown-toggle ',
             },
         }

@@ -219,6 +219,7 @@ Meteor.publish('atSettings', function (atId) {
 const fs = require('fs')
 WebApp.connectHandlers
     .use("/download/", function (req, res, next) {
+
         const parts = req.url.split("/");
         const file = parts[1]
         if (!file) {
@@ -226,24 +227,28 @@ WebApp.connectHandlers
             res.end();
             return
         }
-
+        console.log(file)
         const workbook = new Excel.Workbook();
         workbook.xlsx.readFile(process.env.PWD + '/.xlsx/' + file)
             .then(function () {
+                console.log(1)
                 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 res.setHeader("Content-Disposition", "attachment; filename=" + "file.xlsx");
                 res.writeHead(200);
+                console.log(2)
                 workbook.xlsx.write(res)
                     .then(function () {
-                        res.end('2');
+                        console.log(3)
+                        res.end();
                         fs.unlink(process.env.PWD + '/.xlsx/' + file)
                     });
             })
             .catch(function (e) {
+                console.log(4)
                 console.log(e)
                 res.writeHead(404);
                 res.end('1');
             })
 
-
+        console.log(5)
     });
