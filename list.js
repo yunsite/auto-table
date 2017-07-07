@@ -9,7 +9,6 @@ import "./list.html"
 import "./loading.html"
 import "./filter"
 import {_} from 'lodash'
-import './export-form'
 
 const defaultLimit = 50
 /*
@@ -339,8 +338,6 @@ Template.atTable.events({
         $('#' + instance.autoTable.id).submit()
     },
     'click .buttonExport'(e, instance){
-
-        //Blaze.renderWithData(Template.atExportForm,{columns: instance.columns},instance.firstNode)
 
         e.preventDefault();
 

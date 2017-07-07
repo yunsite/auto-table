@@ -43,6 +43,21 @@ export class AutoTable {
                 export: false,
                 settings: true,
             },
+            xls: {
+                firstRows: [[]],
+                pageSetup: {
+                    orientation: 'landscape',
+                    fitToPage: true,
+                    fitToWidth: 1,
+                    fitToHeight: 1,
+                    margins: {
+                        left: 0.3, right: 0.3,
+                        top: 0.3, bottom: 0.3,
+                        header: 0.0, footer: 0.0
+                    },
+                },
+                lastRows: [[]],
+            },
             msg: {
                 columns: 'Columns',
                 showMore: 'Show more', //accept html
@@ -105,7 +120,7 @@ export class AutoTable {
         })
 
         this.columns = columns
-        try{
+        try {
             check(columns, [{
                 label: Match.Maybe(String),
                 key: Match.Optional(String),
@@ -121,7 +136,7 @@ export class AutoTable {
                     options: Match.Optional(Array)
                 }])
             }])
-        }catch(e){
+        } catch (e) {
             console.error(e)
             console.log(id)
             console.log(columns)
