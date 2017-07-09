@@ -63,7 +63,7 @@ Meteor.methods({
     'autoTable.export': async function (id, query, sort, columns) {
         const autoTable = AutoTable.getInstance(id)
         const workbook = new Excel.Workbook();
-        console.log(autoTable.settings.xls.pageSetup)
+        //console.log(autoTable.settings.xls.pageSetup)
         const worksheet = workbook.addWorksheet('My Sheet', {
             pageSetup: autoTable.settings.xls.pageSetup
         });
@@ -95,8 +95,8 @@ Meteor.methods({
 
         fillRows(0, autoTable.settings.xls.firstRows, id, query, worksheet)
         let r = autoTable.settings.xls.firstRows.length + 1
-        console.log('r', r)
-        console.log(' autoTable.settings.xls.firstRows', autoTable.settings.xls.firstRows)
+            //console.log('r', r)
+        //console.log(' autoTable.settings.xls.firstRows', autoTable.settings.xls.firstRows)
 
         let c = 1
         const widths = {}
@@ -151,12 +151,15 @@ Meteor.methods({
                 if (!column.invisible) {
                     const atColumn = _.find(autoTable.columns, {key: column.key})// find the same colum in the autotable declarion for get the render function (that is not in passed columns)
                     let val
-                    if (typeof atColumn.render == 'function') {
+                    if (typeof atColumn.render === 'function') {
 
                         val = atColumn.render.call(row, _.get(row, column.key))
-                        if (typeof val == 'string') {
+                        if (typeof val === 'string') {
                             val = val.replace(/<(br|BR) *\/?>/gm, '\r');
                             val = val.replace(/<(?:.|\n)*?>/gm, ' ');
+                            val = val.replace(/^\s+|\s+$/gm, '');
+                            val = val.replace(/^\r+|\r+$/gm, '');
+                            val = val.replace(/^\n+|\n+$/gm, '');
                         }
                     } else {
                         val = _.get(row, column.key)
@@ -164,9 +167,9 @@ Meteor.methods({
                     widths[c] = Math.max(widths[c] || 0, (val && val.toString().length) || 0)
                     const cell = excelRow.getCell(c)
                     cell.value = val
-                    cell.alignment = {vertical: 'middle'};
-                    cell.border = r == 1 ? border2 : border
-                    if (typeof val == 'number') {
+                    cell.alignment = {vertical: 'middle', wrapText: true};
+                    cell.border = r === 1 ? border2 : border
+                    if (typeof val === 'number') {
                         cell.alignment.horizontal = 'center'
                     }
                     c++
@@ -180,7 +183,6 @@ Meteor.methods({
         }
         fillRows(r + 1, autoTable.settings.xls.lastRows, id, query, worksheet)
 
-        console.log(22)
         const file = Random.secret()
         const path = process.env.PWD + '/.xlsx/' + file
         try {
@@ -193,7 +195,6 @@ Meteor.methods({
 
         Meteor.setTimeout(() => {
             fs.unlink(path, (err) => {
-                console.log(33)
                 if (!err) console.error('xls removed , some problem occurred removing before')
             })
         }, 1000 * 60 * 15)
@@ -267,15 +268,12 @@ WebApp.connectHandlers
             res.end();
             return
         }
-        console.log(file)
         const workbook = new Excel.Workbook();
         workbook.xlsx.readFile(process.env.PWD + '/.xlsx/' + file)
             .then(function () {
-                console.log(1)
                 res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 res.setHeader("Content-Disposition", "attachment; filename=" + "file.xlsx");
                 res.writeHead(200);
-                console.log(2)
                 workbook.xlsx.write(res)
                     .then(function () {
                         res.end();
@@ -283,11 +281,9 @@ WebApp.connectHandlers
                     });
             })
             .catch(function (e) {
-                console.log(4)
-                console.log(e)
+                console.error(e)
                 res.writeHead(404);
                 res.end('1');
             })
 
-        console.log(5)
     });
