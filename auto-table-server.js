@@ -148,6 +148,10 @@ Meteor.methods({
             col.width = Math.min(widths[c], 30)
         }
         const file = Random.secret()
+        try {
+            fs.mkdirSync(process.env.PWD + '/.xlsx/')
+        } catch (e) {
+        }
         const path=process.env.PWD + '/.xlsx/' + file
         const now=new Date().getTime()
         const result = await workbook.xlsx.writeFile(path)
