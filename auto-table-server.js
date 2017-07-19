@@ -38,7 +38,27 @@ export class Exporter {
 
 }
 
+const fillRows = function (n, rows, id, query, worksheet) {
+    if (!Array.isArray(rows)) throw new Meteor.Error('FirstRows and lastRows has to be a array of array like [["row1 - cel1",["row1 - cel2"],["row2 - cel1",["row2 - cel2"]]')
+    const rowsLen = rows.length
+    for (let row = 0; row < rowsLen; row++) {
+        if (!Array.isArray(rows[row])) throw new Meteor.Error('FirstRows and lastRows has to be a array of array like [["row1 - cel1",["row1 - cel2"],["row2 - cel1",["row2 - cel2"]]')
 
+        const cellLen = rows[row].length
+        for (let cell = 0; cell < cellLen; cell++) {
+            let val = rows[row][cell];
+            if (typeof val == 'function') {
+                val = val(id, query)
+            }
+            const c = worksheet.getRow(n + row + 1).getCell(cell + 1)
+            c.value = val
+            c.font = {
+                bold: true,
+                size: 18
+            }
+        }
+    }
+}
 Meteor.methods({
     'autoTable.export': async function (id, query, sort, columns) {
 
@@ -77,21 +97,32 @@ Meteor.methods({
         //and data onñy ewill be contain columns key
         const data = []
 
-        let r = 2
+
+        fillRows(0, autoTable.settings.xls.firstRows, id, query, worksheet)
+        let r = autoTable.settings.xls.firstRows.length + 1
+            //console.log('r', r)
+        //console.log(' autoTable.settings.xls.firstRows', autoTable.settings.xls.firstRows)
+
         let c = 1
         const widths = {}
-        let excelRow = worksheet.getRow(1)
+
+
+        let excelRow
+        excelRow = worksheet.getRow(r)
         excelRow.height = 40
         for (let column  of columns) {
-            const cell = excelRow.getCell(c)
-            cell.value = column.label
-            cell.font = {
-                bold: true,
-                size: 14
+            if (!column.invisible) {
+                const cell = excelRow.getCell(c)
+                cell.value = column.label
+                cell.font = {
+                    bold: true,
+                    size: 14
+                }
+                widths[c] = Math.max(widths[c] || 0, (column && column.label && column.label.length) || 0)
+                c++
             }
-            widths[c] = Math.max(widths[c] || 0, (column && column.label && column.label.length) || 0)
-            c++
         }
+        r++
         const odd = {
                 type: 'pattern',
                 pattern: 'solid',
@@ -125,11 +156,15 @@ Meteor.methods({
                 if (!column.invisible) {
                     const atColumn = _.find(autoTable.columns, {key: column.key})// find the same colum in the autotable declarion for get the render function (that is not in passed columns)
                     let val
-                    if (typeof atColumn.render == 'function') {
+                    if (typeof atColumn.render === 'function') {
 
                         val = atColumn.render.call(row, _.get(row, column.key))
-                        if (typeof val == 'string') {
+                        if (typeof val === 'string') {
+                            val = val.replace(/<(br|BR) *\/?>/gm, '\r');
                             val = val.replace(/<(?:.|\n)*?>/gm, ' ');
+                            val = val.replace(/^\s+|\s+$/gm, '');
+                            val = val.replace(/^\r+|\r+$/gm, '');
+                            val = val.replace(/^\n+|\n+$/gm, '');
                         }
                     } else {
                         val = _.get(row, column.key)
@@ -137,7 +172,11 @@ Meteor.methods({
                     widths[c] = Math.max(widths[c] || 0, (val && val.toString().length) || 0)
                     const cell = excelRow.getCell(c)
                     cell.value = val
-                    cell.border = r == 1 ? border2 : border
+                    cell.alignment = {vertical: 'middle', wrapText: true};
+                    cell.border = r === 1 ? border2 : border
+                    if (typeof val === 'number') {
+                        cell.alignment.horizontal = 'center'
+                    }
                     c++
                     val = ''
                 }
@@ -147,20 +186,23 @@ Meteor.methods({
             const col = worksheet.getColumn(parseInt(c))
             col.width = Math.min(widths[c], 30)
         }
+        fillRows(r + 1, autoTable.settings.xls.lastRows, id, query, worksheet)
+
         const file = Random.secret()
+        const path = process.env.PWD + '/.xlsx/' + file
         try {
             fs.mkdirSync(process.env.PWD + '/.xlsx/')
         } catch (e) {
         }
-        const path=process.env.PWD + '/.xlsx/' + file
-        const now=new Date().getTime()
+        const now = new Date().getTime()
         const result = await workbook.xlsx.writeFile(path)
-        console.log('time creating xls', new Date().getTime() - now )
+        console.log('time creating xls', new Date().getTime() - now)
+
         Meteor.setTimeout(() => {
             fs.unlink(path, (err) => {
                 if (!err) console.error('xls removed , some problem occurred removing before')
             })
-        }, 1000 *  15)
+        }, 1000 * 60 * 15)
         return file
 
     }
