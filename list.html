@@ -1,5 +1,5 @@
 <template name="atTable">
-    <div class="atTable">
+    <div class="atTable" id="container_{{id}}">
         {{>atShowing settings=settings total=total showing=showing}}
         {{#unless Template.subscriptionsReady }}
             <div class="center-loading">
@@ -47,8 +47,8 @@
         </div>
         <div class="clearfix"></div>
         <div class="{{settings.klass.tableWrapper}}" style="overflow-y: visible">
-            <table class="{{settings.klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}">
-                <thead>
+            <table class="{{settings.klass.table}}{{#if settings.options.columnsSort}} table-draggable{{/if}}"  id="table_{{id}}">
+                <thead >
                 <tr class="sortable">
                     {{#each column in columns}}
                         <th id="{{column.key}}" style="{{#if column.invisible}}display: none{{/if}}">

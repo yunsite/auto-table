@@ -5,14 +5,15 @@ import {_} from 'lodash'
 import {getFields} from './util'
 const Excel = require('exceljs')
 export class Exporter {
-    constructor(userId) {
+    constructor(userId,collection) {
         this.export = {}
         this.userId = userId
+        this.collection = collection
 
     }
 
     added(collection, _id, doc) {
-        if (collection != 'counts') {
+        if (collection === this.collection) {
             this.export[collection] = this.export[collection] || []
             this.export[collection].push(doc)
         }
@@ -77,7 +78,7 @@ Meteor.methods({
             const autoTableQuery = _.cloneDeep(autoTable.query)
             query = _.defaultsDeep(autoTableQuery, query)
         }
-        const exporter = new Exporter(this.userId)
+        const exporter = new Exporter(this.userId,autoTable.collection._name)
         const publication = autoTable.publish.call(exporter, id, 9999, query, sort)
 
         if (publication === false) {
@@ -93,6 +94,8 @@ Meteor.methods({
         } else {
             rows = autoTable.collection.find(query, {fields, sort}).fetch()
         }
+
+        console.log(rows)
         //apply render function
         //and data onñy ewill be contain columns key
         const data = []
@@ -100,7 +103,7 @@ Meteor.methods({
 
         fillRows(0, autoTable.settings.xls.firstRows, id, query, worksheet)
         let r = autoTable.settings.xls.firstRows.length + 1
-            //console.log('r', r)
+        //console.log('r', r)
         //console.log(' autoTable.settings.xls.firstRows', autoTable.settings.xls.firstRows)
 
         let c = 1
@@ -166,6 +169,7 @@ Meteor.methods({
                             val = val.replace(/^\r+|\r+$/gm, '');
                             val = val.replace(/^\n+|\n+$/gm, '');
                         }
+
                     } else {
                         val = _.get(row, column.key)
                     }
@@ -291,7 +295,7 @@ WebApp.connectHandlers
             })
             .catch(function (e) {
                 console.log(4)
-                console.log(e)
+                console.error(e)
                 res.writeHead(404);
                 res.end('1');
             })

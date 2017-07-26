@@ -10,7 +10,7 @@ import "./loading.html"
 import "./filter"
 import {_} from 'lodash'
 import './export-form'
-
+import 'floatthead'
 const defaultLimit = 50
 /*
  const hashCode = function (str) {
@@ -173,6 +173,13 @@ export const createFilter = function (columns, schema) {
     return filters
 }
 Template.atTable.onRendered(function () {
+    if (this.settings.options.affix){
+        const id=this.autoTable.id
+        console.log('id',id)
+        const $table=$('#table_' + id)
+        $table.floatThead({position: 'absolute'});
+    }
+
 
 
     let first = true

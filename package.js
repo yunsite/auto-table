@@ -8,19 +8,19 @@ Package.describe({
 
 Package.onUse(function (api) {
     api.versionsFrom('1.4.2');
-    api.use(['ecmascript','check','mongo']);
-    api.use(['webapp'],'server');
-    api.use(['templating', 'cesarve:persistent-reactive-var','webtempest:animate','reactive-var'], 'client');
+    api.use(['ecmascript', 'check', 'mongo']);
+    api.use(['webapp'], 'server');
+    api.use(['templating', 'cesarve:persistent-reactive-var', 'webtempest:animate', 'reactive-var'], 'client');
     api.use(['tmeasday:publish-counts'], ['client', 'server'], {weak: true})
-    api.use(['aldeed:autoform','aldeed:simple-schema','cesarve:auto-import'], ['client'], {weak: true})
+    api.use(['aldeed:autoform', 'aldeed:simple-schema', 'cesarve:auto-import'], ['client'], {weak: true})
     api.mainModule('auto-table-client.js', 'client');
     api.mainModule('auto-table-server.js', 'server');
     api.mainModule('auto-table.js');
 });
 
 Npm.depends({
-    'lodash':'4.17.2',
+    'lodash': '4.17.2',
     'json2csv': '3.7.3',
     "exceljs": "0.4.13",
-
+    "floatthead": "2.0.3",
 })

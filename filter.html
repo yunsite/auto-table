@@ -1,8 +1,7 @@
 <template name="atFilter">
-    <div class="table-group">
+    <div class="table-group ">
     {{#autoForm  id=id  schema=schema type="normal" autosaveOnKeyup=true trimStrings=false autoConvert=false keyup=1250}}
         {{#each columns}}
-
             <td style="{{#if invisible}}display: none{{/if}}">
                 {{#if columnIsInFilter}}
                     <div class="{{../../settings.klass.filterWrapper}} {{#if afFieldIsInvalid

@@ -42,6 +42,7 @@ export class AutoTable {
                 buttons: [],
                 export: false,
                 settings: true,
+                affix: true,
             },
             xls: {
                 firstRows: [[]],
@@ -120,7 +121,7 @@ export class AutoTable {
         })
 
         this.columns = columns
-        try{
+        try {
             check(columns, [{
                 label: Match.Maybe(String),
                 key: Match.Optional(String),
@@ -136,7 +137,7 @@ export class AutoTable {
                     options: Match.Optional(Array)
                 }])
             }])
-        }catch(e){
+        } catch (e) {
             console.error(e)
             console.log(id)
             console.log(columns)
