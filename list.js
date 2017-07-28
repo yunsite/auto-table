@@ -174,10 +174,12 @@ export const createFilter = function (columns, schema) {
 }
 Template.atTable.onRendered(function () {
     if (this.settings.options.affix){
-        const id=this.autoTable.id
+        /*const id=this.autoTable.id
         console.log('id',id)
         const $table=$('#table_' + id)
-        $table.floatThead({position: 'absolute'});
+        $table.floatThead({position: 'absolute'});*/
+       // const $table=$('#table_' + id)
+       // $table.find('thead').css('position','-webkit-sticky').css('position','sticky').css('top', 0).css('z-index', 5)
     }
 
 
