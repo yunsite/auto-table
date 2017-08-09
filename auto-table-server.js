@@ -1,7 +1,6 @@
 import './auto-table'
 import {AutoTable} from "./auto-table"
 import {_} from 'lodash'
-
 import {getFields} from './util'
 const Excel = require('exceljs')
 export class Exporter {
@@ -82,6 +81,7 @@ Meteor.methods({
         const publication = autoTable.publish.call(exporter, id, 9999, query, sort)
 
         if (publication === false) {
+            console.error('AutoTable exporter,  Access deny')
             throw new Meteor.Error(403, 'Access deny')
 
         }
