@@ -60,7 +60,7 @@ Template.atTable.onCreated(function () {
 
     /**settings from data***/
     let settings = this.data.settings || this.data.at.settings
-    if (typeof settings == 'function') settings = settings()
+    if (typeof settings === 'function') settings = settings()
     this.settings = _.defaultsDeep(settings, this.data.at.settings)
 
 
